@@ -1,7 +1,17 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+    outputFileTracingRoot: __dirname,
     images: {
-        domains: ['trhfokxznsqlfiskhmxe.supabase.co'],
+        remotePatterns: [
+            {
+                protocol: 'https',
+                hostname: 'trhfokxznsqlfiskhmxe.supabase.co',
+            },
+            {
+                protocol: 'https',
+                hostname: 'images.unsplash.com',
+            },
+        ],
     },
     webpack: (config, { isServer }) => {
         config.module.rules.push({
