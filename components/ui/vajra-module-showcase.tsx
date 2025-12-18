@@ -127,7 +127,7 @@ const MODULE_DATA: Record<ModuleId, ModuleData> = {
 // 2. ANIMATION VARIANTS
 // =========================================
 
-const ANIMATIONS = {
+const ANIMATIONS: Record<string, Variants> = {
     container: {
         hidden: { opacity: 0 },
         visible: {
@@ -149,26 +149,27 @@ const ANIMATIONS = {
         },
         exit: { opacity: 0, y: -10, filter: 'blur(5px)' },
     },
-    image: (): Variants => ({
-        initial: {
-            opacity: 0,
-            scale: 1.3,
-            filter: 'blur(15px)',
-        },
-        animate: {
-            opacity: 1,
-            scale: 1,
-            filter: 'blur(0px)',
-            transition: { type: 'spring', stiffness: 260, damping: 20 },
-        },
-        exit: {
-            opacity: 0,
-            scale: 0.8,
-            filter: 'blur(20px)',
-            transition: { duration: 0.25 },
-        },
-    }),
 };
+
+const imageVariants = (): Variants => ({
+    initial: {
+        opacity: 0,
+        scale: 1.3,
+        filter: 'blur(15px)',
+    },
+    animate: {
+        opacity: 1,
+        scale: 1,
+        filter: 'blur(0px)',
+        transition: { type: 'spring', stiffness: 260, damping: 20 },
+    },
+    exit: {
+        opacity: 0,
+        scale: 0.8,
+        filter: 'blur(20px)',
+        transition: { duration: 0.25 },
+    },
+});
 
 // =========================================
 // 3. SUB-COMPONENTS
@@ -219,7 +220,7 @@ const ModuleVisual = ({ data }: { data: ModuleData }) => (
                         key={data.id}
                         src={data.image}
                         alt={data.title}
-                        variants={ANIMATIONS.image()}
+                        variants={imageVariants()}
                         initial="initial"
                         animate="animate"
                         exit="exit"

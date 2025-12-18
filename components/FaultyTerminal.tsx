@@ -289,7 +289,7 @@ export default function FaultyTerminal({
     const rect = ctn.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width;
     const y = 1 - (e.clientY - rect.top) / rect.height;
-    mouseRef.current = { x, y };
+    (mouseRef as unknown as React.MutableRefObject<Vec2>).current = [x, y];
   }, []);
 
   useEffect(() => {
@@ -297,7 +297,7 @@ export default function FaultyTerminal({
     if (!ctn) return;
 
     const renderer = new Renderer({ dpr: safeDpr });
-    rendererRef.current = renderer;
+    (rendererRef as React.MutableRefObject<Renderer | null>).current = renderer;
     const gl = renderer.gl;
     gl.clearColor(0, 0, 0, 1);
 
@@ -333,7 +333,7 @@ export default function FaultyTerminal({
         uBrightness: { value: brightness }
       }
     });
-    programRef.current = program;
+    (programRef as React.MutableRefObject<Program | null>).current = program;
 
     const mesh = new Mesh(gl, { geometry, program });
 
@@ -352,16 +352,16 @@ export default function FaultyTerminal({
     resize();
 
     const update = (t: number) => {
-      rafRef.current = requestAnimationFrame(update);
+      (rafRef as React.MutableRefObject<number>).current = requestAnimationFrame(update);
 
       if (pageLoadAnimation && loadAnimationStartRef.current === 0) {
-        loadAnimationStartRef.current = t;
+        (loadAnimationStartRef as React.MutableRefObject<number>).current = t;
       }
 
       if (!pause) {
         const elapsed = (t * 0.001 + timeOffsetRef.current) * timeScale;
         program.uniforms.iTime.value = elapsed;
-        frozenTimeRef.current = elapsed;
+        (frozenTimeRef as React.MutableRefObject<number>).current = elapsed;
       } else {
         program.uniforms.iTime.value = frozenTimeRef.current;
       }
@@ -387,7 +387,7 @@ export default function FaultyTerminal({
 
       renderer.render({ scene: mesh });
     };
-    rafRef.current = requestAnimationFrame(update);
+    (rafRef as React.MutableRefObject<number>).current = requestAnimationFrame(update);
     ctn.appendChild(gl.canvas);
 
     if (mouseReact) ctn.addEventListener('mousemove', handleMouseMove);
@@ -398,8 +398,8 @@ export default function FaultyTerminal({
       if (mouseReact) ctn.removeEventListener('mousemove', handleMouseMove);
       if (gl.canvas.parentElement === ctn) ctn.removeChild(gl.canvas);
       gl.getExtension('WEBGL_lose_context')?.loseContext();
-      loadAnimationStartRef.current = 0;
-      timeOffsetRef.current = Math.random() * 100;
+      (loadAnimationStartRef as React.MutableRefObject<number>).current = 0;
+      (timeOffsetRef as React.MutableRefObject<number>).current = Math.random() * 100;
     };
   }, [
     safeDpr,

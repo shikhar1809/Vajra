@@ -1,14 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { supabaseAdmin } from "@/lib/supabase/server";
 import OpenAI from "openai";
 
-const openai = new OpenAI({
+const openai = process.env.OPENAI_API_KEY ? new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
-});
+}) : null;
 
 export async function POST(request: NextRequest) {
     try {
-        const supabase = await createClient();
+        if (!openai) {
+            return NextResponse.json(
+                { error: "OpenAI API key not configured" },
+                { status: 500 }
+            );
+        }
+
+        const supabase = supabaseAdmin;
         const { documentId } = await request.json();
 
         // Get document
@@ -190,7 +197,8 @@ interface Vendor {
 
 async function extractVendorsWithAI(text: string): Promise<Vendor[]> {
     try {
-        const completion = await openai.chat.completions.create({
+        if (!openai) return [];
+        const completion = await openai!.chat.completions.create({
             model: "gpt-4",
             messages: [
                 {
