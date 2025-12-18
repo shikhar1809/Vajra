@@ -5,20 +5,23 @@ import * as THREE from "three"
 export function BattleEnemies() {
     const enemyPositions: [number, number, number][] = []
 
-    // Reduced ring of enemies for better performance (16 instead of 32)
-    for (let i = 0; i < 16; i++) {
-        const angle = (i / 16) * Math.PI * 2
+    // Ring of enemies around the castle
+    for (let i = 0; i < 32; i++) {
+        const angle = (i / 32) * Math.PI * 2
         const distance = 9 + Math.random() * 2
         const x = Math.cos(angle) * distance
         const z = Math.sin(angle) * distance
         enemyPositions.push([x, 0, z])
     }
 
-    // Reduced climbing enemies for better performance (4 instead of 8)
     const climbingPositions: [number, number, number, string][] = [
         [-6, 1.5, -3, "left"],
+        [-6, 2, 2, "left"],
         [6, 1.8, -2, "right"],
+        [6, 1.3, 4, "right"],
         [-3, 1.6, -6, "front"],
+        [2, 2.2, -6, "front"],
+        [-4, 1.4, 6, "back"],
         [3, 2.1, 6, "back"],
     ]
 
