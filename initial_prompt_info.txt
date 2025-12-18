@@ -1,0 +1,42 @@
+I am building a app named Vajra
+it is a cybersecurity app for Small Medium enterprices and Buisness
+
+I have thought the app to have 4 module
+Vajra Shield - A shielf that is always their tracking the app or website
+                      of the buisness usage noting avg user flow at specific
+                      time and triggers when a usual amount of users.
+                      gain access to the wesbite in a small time.
+                      Then it starts what is called a bunker mode
+                       Each user has to pass some hand curated tests
+                       like  OTP verification or write on the screen using pen tool 
+                       to gain access to the site and more [YOU THINK MORE
+                       VALUABLE ADDITION TO THIS]
+
+Vajra Scout - This feature helps buisness owners to check the vendors
+                      cyber-security compliance and track record and if a data
+                      breach occurs the responsible vendor is tracked.
+                      Design specific algorithms and use open source tools
+                      to determine the cyber security prowess of these 
+                      distributed vendors.  [YOU THINK MORE
+                       VALUABLE ADDITION TO THIS]
+
+Vajra Sentry - This feature is designed to help the buisnesses employees
+                       stay away for the cyuber -security threats it have 
+                       tools for phishing that uses Google SafeWeb for info
+                       and also document scanner that scans the document
+                       for potential malware through open source libraries
+                      and also has own algorithm and also tracks the employees
+                      live geo-location such that the employee can only use the
+                      app or access the admin priviliges when it is in designated
+                      workpace and connected to designated safe router for 
+                       web access.  [YOU THINK MORE
+                       VALUABLE ADDITION TO THIS]
+
+Vajra Agenios -this feature is used to analyse the user application 
+                        codebase , run various new type of malware attacks
+                         and breaching and penetration attacks and see 
+                         if the code will actually hold off a cyber security attack or 
+                         not.
+
+
+supabse email - rscortroasteryca@gmail.com

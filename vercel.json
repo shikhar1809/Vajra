@@ -1,0 +1,8 @@
+{
+    "crons": [
+        {
+            "path": "/api/cron/update-threats",
+            "schedule": "0 */6 * * *"
+        }
+    ]
+}

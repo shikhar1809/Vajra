@@ -18,6 +18,19 @@ export default function ShieldPage() {
         setLoading(true);
         try {
             const response = await fetch('/api/shield/traffic');
+
+            // Check if response is OK and is JSON
+            if (!response.ok) {
+                console.error('API returned error:', response.status, response.statusText);
+                return;
+            }
+
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                console.error('API did not return JSON:', contentType);
+                return;
+            }
+
             const data = await response.json();
             if (data.success) {
                 setTrafficData(data.data);

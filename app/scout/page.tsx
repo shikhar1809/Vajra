@@ -6,6 +6,7 @@ import { StatCard } from "@/components/common/StatCard";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import FinancialDocumentUpload from "@/components/scout/FinancialDocumentUpload";
 
 interface Vendor {
     id: string;
@@ -220,6 +221,22 @@ export default function ScoutPage() {
                         iconColor="text-cyan-500"
                     />
                 </div>
+
+                {/* Financial Document Upload */}
+                <Card className="cyber-card border-purple-500/50">
+                    <CardHeader>
+                        <CardTitle className="text-white flex items-center gap-2">
+                            <Upload className="w-5 h-5 text-purple-400" />
+                            Financial Document Analysis
+                        </CardTitle>
+                        <p className="text-sm text-gray-400">
+                            Upload expense reports, invoices, or bank statements to automatically detect and map vendor relationships
+                        </p>
+                    </CardHeader>
+                    <CardContent>
+                        <FinancialDocumentUpload />
+                    </CardContent>
+                </Card>
 
                 {/* Vendors List */}
                 <Card className="cyber-card">

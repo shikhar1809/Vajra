@@ -22,7 +22,7 @@ export function StatCard({ title, value, icon: Icon, trend, className, iconColor
                 <Icon className={cn("w-5 h-5", iconColor)} />
             </CardHeader>
             <CardContent>
-                <div className="text-3xl font-bold text-white">
+                <div className="text-3xl font-bold text-slate-900">
                     {typeof value === 'number' && isNaN(value) ? '0' : value}
                 </div>
                 {trend && (

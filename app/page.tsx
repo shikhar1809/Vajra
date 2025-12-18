@@ -2,15 +2,24 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { Shield, Search, Eye, Code, ArrowRight, CheckCircle2, Sparkles } from "lucide-react";
 import FuzzyText from "@/components/FuzzyText";
 import DecryptedText from "@/components/DecryptedText";
 import SimpleCard from "@/components/SimpleCard";
 import CountUp from "@/components/CountUp";
-import TargetCursor from "@/components/TargetCursor";
+import TrueFocus from "@/components/TrueFocus";
+import { MatrixText } from "@/components/ui/matrix-text";
+import { KeyboardKeys } from "@/components/ui/keyboard-keys";
+import FlowingMenu from "@/components/FlowingMenu";
+
 import Lanyard from "@/components/Lanyard";
 import BlurText from "@/components/BlurText";
 import Ribbons from "@/components/Ribbons";
+
+// Dynamic import to prevent SSR issues with Three.js
+const LightPillar = dynamic(() => import("@/components/LightPillar"), { ssr: false });
+const CastleScene = dynamic(() => import("@/components/CastleScene"), { ssr: false });
 
 export default function HomePage() {
     const [activeModule, setActiveModule] = useState(0);
@@ -69,6 +78,23 @@ export default function HomePage() {
 
     return (
         <div className="min-h-screen bg-black">
+            {/* Red Light Pillar Background */}
+            <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100vh', zIndex: 0 }}>
+                <LightPillar
+                    topColor="#ef4444"
+                    bottomColor="#dc2626"
+                    intensity={1.0}
+                    rotationSpeed={0.3}
+                    glowAmount={0.005}
+                    pillarWidth={3.0}
+                    pillarHeight={0.4}
+                    noiseIntensity={0.5}
+                    pillarRotation={0}
+                    interactive={false}
+                    mixBlendMode="normal"
+                />
+            </div>
+
             {/* Red Ribbons Cursor Effect */}
             <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100vh', zIndex: 9999, pointerEvents: 'none' }}>
                 <Ribbons
@@ -87,7 +113,7 @@ export default function HomePage() {
             </div> */}
 
             {/* Simple Hero */}
-            <section className="container mx-auto px-6 pb-20 max-w-6xl">
+            <section className="container mx-auto px-6 pb-20 max-w-6xl relative z-10">
                 <div className="text-center mb-16">
                     {/* Lanyard ID Card - Full viewport on load */}
                     <div className="mb-6 h-screen flex flex-col items-center justify-center">
@@ -114,7 +140,7 @@ export default function HomePage() {
 
                     {/* CountUp Stat */}
                     <div className="mb-8">
-                        <div className="text-8xl md:text-9xl font-black text-red-500 mb-2">
+                        <div className="text-8xl md:text-9xl font-black text-white mb-2">
                             <CountUp
                                 from={0}
                                 to={95}
@@ -129,11 +155,22 @@ export default function HomePage() {
                     </div>
 
                     {/* Main Message */}
-                    <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
-                        Your Digital Fortress
-                    </h1>
+                    <div className="mb-6">
+                        <MatrixText
+                            text="YOUR DIGITAL FORTRESS"
+                            className="text-5xl md:text-7xl font-black text-red-500"
+                            initialDelay={200}
+                            letterAnimationDuration={500}
+                            letterInterval={50}
+                        />
+                    </div>
 
-                    <p className="text-xl text-slate-300 mb-8 max-w-2xl mx-auto">
+                    {/* Interactive 3D Castle */}
+                    <div className="mb-8">
+                        <CastleScene />
+                    </div>
+
+                    <p className="text-xl text-white mb-8 max-w-2xl mx-auto">
                         Four powerful tools working together to keep your business safe from cyber threats
                     </p>
 
@@ -147,22 +184,20 @@ export default function HomePage() {
                     </Link>
                 </div>
 
-                {/* DecryptedText Section - Center */}
+                {/* Static Text Section - Center */}
                 <div className="text-center mb-20">
-                    <div className="inline-block min-w-[800px]">
-                        <DecryptedText
-                            text="YOUR BUSINESS DATA"
-                            hoverText="PROTECTED"
-                            animateOn="both"
-                            revealDirection="center"
-                            speed={80}
-                            maxIterations={8}
-                            sequential={true}
-                            className="text-6xl md:text-7xl font-black text-white encrypted"
-                            parentClassName="inline-block cursor-pointer"
+                    <div className="flex items-center justify-center gap-6">
+                        <TrueFocus
+                            sentence="DATA PROTECTION"
+                            manualMode={false}
+                            blurAmount={5}
+                            borderColor="#ef4444"
+                            glowColor="rgba(239, 68, 68, 0.6)"
+                            animationDuration={1}
+                            pauseBetweenAnimations={0.5}
                         />
                     </div>
-                    <p className="text-slate-400 mt-6 text-lg max-w-2xl mx-auto">
+                    <p className="text-white mt-6 text-lg max-w-2xl mx-auto">
                         With Vajra's AI-powered protection, cyber threats are neutralized before they can harm your business
                     </p>
                 </div>
@@ -196,117 +231,65 @@ export default function HomePage() {
                 </div>
             </section>
 
-            {/* Core Modules Showcase with TargetCursor */}
-            <TargetCursor
-                spinDuration={2}
-                hideDefaultCursor={true}
-                parallaxOn={true}
-            />
-
+            {/* Core Modules Showcase */}
             <section className="container mx-auto px-6 py-20 max-w-6xl">
                 <div className="mb-20">
                     <h2 className="text-4xl font-bold text-white text-center mb-12">
                         Core Security Modules
                     </h2>
 
-                    {/* Shield - Full Width */}
-                    <Link href="/shield" className="cursor-target block mb-6">
-                        <div className="group relative p-8 bg-gradient-to-r from-red-900/20 to-red-800/20 border-2 border-red-500/30 rounded-2xl hover:border-red-500 transition-all duration-300 hover:shadow-xl hover:shadow-red-500/20">
-                            <div className="flex items-center gap-6">
-                                <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-red-500 to-red-600 p-4 flex items-center justify-center">
-                                    <Shield className="w-full h-full text-white" />
-                                </div>
-                                <div className="flex-1">
-                                    <h3 className="text-3xl font-bold text-white mb-2">SHIELD</h3>
-                                    <p className="text-slate-300 text-lg">
-                                        Real-time traffic monitoring and threat detection with AI-powered anomaly analysis
-                                    </p>
-                                </div>
-                                <ArrowRight className="w-8 h-8 text-red-400 group-hover:translate-x-2 transition-transform" />
-                            </div>
-                        </div>
-                    </Link>
-
-                    {/* Sentry, Scout, Agenios - 3 Equal Boxes */}
-                    <div className="grid md:grid-cols-3 gap-6">
-                        {/* Sentry */}
-                        <Link href="/sentry" className="cursor-target block">
-                            <div className="group relative h-full p-6 bg-gradient-to-br from-rose-900/20 to-rose-800/20 border-2 border-rose-500/30 rounded-2xl hover:border-rose-500 transition-all duration-300 hover:shadow-xl hover:shadow-rose-500/20">
-                                <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-rose-500 to-rose-600 p-3 mb-4 flex items-center justify-center">
-                                    <Eye className="w-full h-full text-white" />
-                                </div>
-                                <h3 className="text-2xl font-bold text-white mb-2">SENTRY</h3>
-                                <p className="text-slate-300 mb-4">
-                                    Email security and phishing detection to protect your team
-                                </p>
-                                <div className="flex items-center gap-2 text-rose-400 font-semibold">
-                                    Explore
-                                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                                </div>
-                            </div>
-                        </Link>
-
-                        {/* Scout */}
-                        <Link href="/scout" className="cursor-target block">
-                            <div className="group relative h-full p-6 bg-gradient-to-br from-orange-900/20 to-orange-800/20 border-2 border-orange-500/30 rounded-2xl hover:border-orange-500 transition-all duration-300 hover:shadow-xl hover:shadow-orange-500/20">
-                                <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 p-3 mb-4 flex items-center justify-center">
-                                    <Search className="w-full h-full text-white" />
-                                </div>
-                                <h3 className="text-2xl font-bold text-white mb-2">SCOUT</h3>
-                                <p className="text-slate-300 mb-4">
-                                    Third-party vendor risk assessment and compliance tracking
-                                </p>
-                                <div className="flex items-center gap-2 text-orange-400 font-semibold">
-                                    Explore
-                                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                                </div>
-                            </div>
-                        </Link>
-
-                        {/* Agenios */}
-                        <Link href="/agenios/scan" className="cursor-target block">
-                            <div className="group relative h-full p-6 bg-gradient-to-br from-pink-900/20 to-pink-800/20 border-2 border-pink-500/30 rounded-2xl hover:border-pink-500 transition-all duration-300 hover:shadow-xl hover:shadow-pink-500/20">
-                                <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-pink-500 to-pink-600 p-3 mb-4 flex items-center justify-center">
-                                    <Code className="w-full h-full text-white" />
-                                </div>
-                                <h3 className="text-2xl font-bold text-white mb-2">AGENIOS</h3>
-                                <p className="text-slate-300 mb-4">
-                                    Automated vulnerability scanning and penetration testing
-                                </p>
-                                <div className="flex items-center gap-2 text-pink-400 font-semibold">
-                                    Explore
-                                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                                </div>
-                            </div>
-                        </Link>
+                    {/* FlowingMenu - Four Modules */}
+                    <div style={{ height: '600px', position: 'relative' }}>
+                        <FlowingMenu items={[
+                            {
+                                link: '/shield',
+                                text: 'SHIELD',
+                                image: 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=600&h=400&fit=crop'
+                            },
+                            {
+                                link: '/sentry',
+                                text: 'SENTRY',
+                                image: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=600&h=400&fit=crop'
+                            },
+                            {
+                                link: '/scout',
+                                text: 'SCOUT',
+                                image: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=600&h=400&fit=crop'
+                            },
+                            {
+                                link: '/agenios',
+                                text: 'AGENIOS',
+                                image: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=600&h=400&fit=crop'
+                            }
+                        ]} />
                     </div>
-                </div>
 
-                {/* The Story - 4 Simple Cards */}
-                <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
-                    {modules.map((module, i) => (
-                        <Link key={i} href={module.href}>
-                            <div className={`group relative p-8 bg-slate-800/50 backdrop-blur-sm rounded-2xl border-2 transition-all duration-300 ${activeModule === i
-                                ? 'border-red-500 shadow-xl shadow-red-500/20 scale-[1.02]'
-                                : 'border-slate-700 hover:border-red-500/50 hover:shadow-lg hover:shadow-red-500/10'
-                                }`}>
-                                {/* Icon */}
-                                <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${getColorClasses(module.color)} p-3 mb-4 transition-transform group-hover:scale-110`}>
-                                    <module.icon className="w-full h-full text-white" />
+                    {/* The Story - 4 Simple Cards */}
+                    <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+                        {modules.map((module, i) => (
+                            <Link key={i} href={module.href}>
+                                <div className={`group relative p-8 bg-slate-800/50 backdrop-blur-sm rounded-2xl border-2 transition-all duration-300 ${activeModule === i
+                                    ? 'border-red-500 shadow-xl shadow-red-500/20 scale-[1.02]'
+                                    : 'border-slate-700 hover:border-red-500/50 hover:shadow-lg hover:shadow-red-500/10'
+                                    }`}>
+                                    {/* Icon */}
+                                    <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${getColorClasses(module.color)} p-3 mb-4 transition-transform group-hover:scale-110`}>
+                                        <module.icon className="w-full h-full text-white" />
+                                    </div>
+
+                                    {/* Content */}
+                                    <h3 className="text-2xl font-bold text-white mb-2">{module.title}</h3>
+                                    <p className="text-slate-300 mb-4">{module.description}</p>
+
+                                    {/* Simple Arrow */}
+                                    <div className="flex items-center gap-2 text-red-400 font-semibold group-hover:gap-3 transition-all">
+                                        Try {module.name}
+                                        <ArrowRight className="w-4 h-4" />
+                                    </div>
                                 </div>
-
-                                {/* Content */}
-                                <h3 className="text-2xl font-bold text-white mb-2">{module.title}</h3>
-                                <p className="text-slate-300 mb-4">{module.description}</p>
-
-                                {/* Simple Arrow */}
-                                <div className="flex items-center gap-2 text-red-400 font-semibold group-hover:gap-3 transition-all">
-                                    Try {module.name}
-                                    <ArrowRight className="w-4 h-4" />
-                                </div>
-                            </div>
-                        </Link>
-                    ))}
+                            </Link>
+                        ))}
+                    </div>
                 </div>
             </section>
 
