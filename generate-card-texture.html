@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Vajra Card Texture Generator</title>
+</head>
+
+<body style="margin: 0; padding: 20px; background: #111;">
+    <canvas id="canvas" width="1024" height="640"></canvas>
+    <br>
+    <button onclick="downloadImage()" style="padding: 10px 20px; font-size: 16px; margin-top: 10px;">Download Card
+        Texture</button>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        // Background gradient
+        const gradient = ctx.createLinearGradient(0, 0, 1024, 640);
+        gradient.addColorStop(0, '#1a1a1a');
+        gradient.addColorStop(0.5, '#2d2d2d');
+        gradient.addColorStop(1, '#1a1a1a');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 1024, 640);
+
+        // Red borders
+        ctx.fillStyle = '#ef4444';
+        ctx.fillRect(0, 0, 1024, 8);
+        ctx.fillRect(0, 632, 1024, 8);
+
+        // Red border rectangle
+        ctx.strokeStyle = '#ef4444';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(10, 10, 1004, 620);
+
+        // VAJRA text (centered)
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 80px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('VAJRA', 512, 280);
+
+        // YOUR BUSINESS text (centered) - CHANGED FROM "YOUR INFAMOUS CISO"
+        ctx.font = 'bold 36px Arial';
+        ctx.fillText('YOUR BUSINESS', 512, 360);
+
+        // Gold chip (bottom right)
+        ctx.fillStyle = '#ffd700';
+        ctx.fillRect(850, 520, 120, 90);
+
+        // Chip pattern
+        ctx.fillStyle = '#1a1a1a';
+        for (let i = 0; i < 4; i++) {
+            for (let j = 0; j < 6; j++) {
+                ctx.fillRect(860 + i * 28, 530 + j * 13, 22, 9);
+            }
+        }
+
+        function downloadImage() {
+            const link = document.createElement('a');
+            link.download = 'vajra-card.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+
+        // Auto-download after 1 second
+        setTimeout(() => {
+            downloadImage();
+            alert('Card texture downloaded! Save it to the public folder as vajra-card.png');
+        }, 1000);
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,171 @@
+.card-nav-container {
+    width: 100%;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+}
+
+.card-nav {
+    width: 100%;
+    border-radius: 0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+    transition: background-color 0.3s ease;
+}
+
+.card-nav-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    height: 60px;
+}
+
+.hamburger-menu {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    transition: all 0.3s ease;
+}
+
+.hamburger-menu:hover {
+    opacity: 0.7;
+}
+
+.hamburger-line {
+    width: 100%;
+    height: 2px;
+    background-color: currentColor;
+    transition: all 0.3s ease;
+    transform-origin: center;
+}
+
+.hamburger-menu.open .hamburger-line:first-child {
+    transform: rotate(45deg) translateY(8px);
+}
+
+.hamburger-menu.open .hamburger-line:last-child {
+    transform: rotate(-45deg) translateY(-8px);
+}
+
+.logo-container {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.logo {
+    height: 40px;
+    width: auto;
+}
+
+.card-nav-cta-button {
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.card-nav-cta-button:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+.card-nav-content {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    padding: 0 1.5rem 1rem;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.card-nav.open .card-nav-content {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.nav-card {
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    transition: transform 0.2s ease;
+}
+
+.nav-card:hover {
+    transform: translateY(-2px);
+}
+
+.nav-card-label {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.nav-card-links {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.nav-card-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: inherit;
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    opacity: 0.9;
+}
+
+.nav-card-link:hover {
+    opacity: 1;
+    gap: 0.75rem;
+}
+
+.nav-card-link-icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .card-nav-content {
+        grid-template-columns: 1fr;
+    }
+
+    .card-nav-top {
+        padding: 1rem;
+    }
+
+    .logo {
+        height: 32px;
+    }
+
+    .card-nav-cta-button {
+        font-size: 0.75rem;
+        padding: 0.4rem 0.8rem;
+    }
+
+    .nav-card {
+        padding: 1rem;
+    }
+
+    .nav-card-label {
+        font-size: 1.125rem;
+    }
+}
