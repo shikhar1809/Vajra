@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useWorkspace } from '@/contexts/WorkspaceContext'
 import { getSupabaseClient } from '@/lib/supabase/client'
-import { Search, Plus, Code, Shield } from 'lucide-react'
+import { Search, Plus, Code, Shield, RotateCcw, Database } from 'lucide-react'
 import ProjectScoreCard from '@/components/aegis/ProjectScoreCard'
 import AddProjectForm from '@/components/workspace/aegis/AddProjectForm'
 import ExportButton from '@/components/shared/ExportButton'
@@ -15,6 +15,7 @@ export default function AegisPage() {
     const [isLoading, setIsLoading] = useState(true)
     const [showAddForm, setShowAddForm] = useState(false)
     const [searchQuery, setSearchQuery] = useState('')
+    const [isDemoMode, setIsDemoMode] = useState(false)
 
     useEffect(() => {
         if (workspace) {
@@ -23,7 +24,7 @@ export default function AegisPage() {
     }, [workspace])
 
     async function loadProjects() {
-        if (!workspace) return
+        if (!workspace || isDemoMode) return
 
         try {
             setIsLoading(true)
@@ -39,6 +40,21 @@ export default function AegisPage() {
             console.error('Error loading projects:', error)
         } finally {
             setIsLoading(false)
+        }
+    }
+
+    const toggleDemoMode = () => {
+        if (!isDemoMode) {
+            setIsDemoMode(true)
+            setProjects([
+                { id: '1', name: 'Legacy Backend', repository_url: 'github.com/org/legacy', security_score: 45, vulnerabilities_critical: 3, vulnerabilities_high: 8, vulnerabilities_medium: 12 },
+                { id: '2', name: 'Frontend App', repository_url: 'github.com/org/frontend', security_score: 88, vulnerabilities_critical: 0, vulnerabilities_high: 1, vulnerabilities_medium: 4 },
+                { id: '3', name: 'Auth Service', repository_url: 'github.com/org/auth', security_score: 92, vulnerabilities_critical: 0, vulnerabilities_high: 0, vulnerabilities_medium: 2 },
+                { id: '4', name: 'Payment API', repository_url: 'github.com/org/payments', security_score: 65, vulnerabilities_critical: 1, vulnerabilities_high: 4, vulnerabilities_medium: 8 },
+            ])
+        } else {
+            setIsDemoMode(false)
+            loadProjects()
         }
     }
 
@@ -74,6 +90,25 @@ export default function AegisPage() {
                     </div>
                     <div className="flex items-center gap-3">
                         {workspace && <ExportButton module="aegis" workspaceId={workspace.id} />}
+                        <button
+                            onClick={toggleDemoMode}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-colors ${isDemoMode
+                                ? 'bg-amber-500 hover:bg-amber-600 text-black'
+                                : 'bg-white/10 hover:bg-white/20 text-white'
+                                }`}
+                        >
+                            {isDemoMode ? (
+                                <>
+                                    <RotateCcw className="w-5 h-5" />
+                                    Clear Demo
+                                </>
+                            ) : (
+                                <>
+                                    <Database className="w-5 h-5 text-green-400" />
+                                    Load Demo
+                                </>
+                            )}
+                        </button>
                         <button
                             onClick={() => setShowAddForm(true)}
                             className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold transition-colors"

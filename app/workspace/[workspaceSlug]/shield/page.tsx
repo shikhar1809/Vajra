@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useWorkspace } from '@/contexts/WorkspaceContext'
 import { getSupabaseClient } from '@/lib/supabase/client'
-import { ShieldAlert, Copy, Check, ExternalLink, Code, Clock } from 'lucide-react'
+import { ShieldAlert, Copy, Check, ExternalLink, Code, Clock, Zap, RotateCcw } from 'lucide-react'
 import StatsOverview from '@/components/shield/StatsOverview'
 import TrafficChart from '@/components/shield/TrafficChart'
 import BotDetectionCard from '@/components/shield/BotDetectionCard'
@@ -20,6 +20,7 @@ export default function ShieldPage() {
     const [isLoading, setIsLoading] = useState(true)
     const [copied, setCopied] = useState(false)
     const [timeRange, setTimeRange] = useState<'1h' | '24h' | '7d' | '30d'>('24h')
+    const [isDemoMode, setIsDemoMode] = useState(false)
 
     useEffect(() => {
         if (workspace) {
@@ -46,7 +47,7 @@ export default function ShieldPage() {
     }
 
     async function loadAnalytics() {
-        if (!workspace) return
+        if (!workspace || isDemoMode) return
 
         try {
             setIsLoading(true)
@@ -84,6 +85,26 @@ export default function ShieldPage() {
             }
         } catch (error) {
             console.error('Error generating API key:', error)
+        }
+    }
+
+    const toggleDemoMode = () => {
+        if (!isDemoMode) {
+            setIsDemoMode(true)
+            setAnalytics({
+                totalRequests: 124500,
+                blockedRequests: 4500,
+                botRequests: 8200,
+                uniqueIPs: 15400,
+                requestsHistory: Array.from({ length: 24 }, (_, i) => ({
+                    time: `${i}:00`,
+                    allowed: Math.floor(Math.random() * 5000 + 4000),
+                    blocked: Math.floor(Math.random() * 1000 + 500)
+                }))
+            })
+        } else {
+            setIsDemoMode(false)
+            loadAnalytics()
         }
     }
 
@@ -140,8 +161,26 @@ export default createVajraShield({
                             </button>
                         ))}
                     </div>
+                    <button
+                        onClick={toggleDemoMode}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-colors ${isDemoMode
+                            ? 'bg-amber-500 hover:bg-amber-600 text-black'
+                            : 'bg-white/10 hover:bg-white/20 text-white'
+                            }`}
+                    >
+                        {isDemoMode ? (
+                            <>
+                                <RotateCcw className="w-4 h-4" />
+                                Reset
+                            </>
+                        ) : (
+                            <>
+                                <Zap className="w-4 h-4 text-yellow-500" />
+                                Simulate Attack
+                            </>
+                        )}
+                    </button>
                 </div>
-
                 {/* Stats Overview */}
                 {analytics && (
                     <StatsOverview
@@ -271,6 +310,6 @@ export default createVajraShield({
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     )
 }

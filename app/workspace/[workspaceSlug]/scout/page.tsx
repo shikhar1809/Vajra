@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useWorkspace } from '@/contexts/WorkspaceContext'
 import { getSupabaseClient } from '@/lib/supabase/client'
-import { Search, Plus, Filter, Download } from 'lucide-react'
+import { Search, Plus, Filter, Download, Database, RotateCcw } from 'lucide-react'
 import VendorScoreCard from '@/components/scout/VendorScoreCard'
 import AddVendorForm from '@/components/workspace/scout/AddVendorForm'
 import ExportButton from '@/components/shared/ExportButton'
@@ -16,6 +16,7 @@ export default function ScoutPage() {
     const [showAddForm, setShowAddForm] = useState(false)
     const [searchQuery, setSearchQuery] = useState('')
     const [filterRisk, setFilterRisk] = useState<string>('all')
+    const [isDemoMode, setIsDemoMode] = useState(false)
 
     useEffect(() => {
         if (workspace) {
@@ -24,7 +25,7 @@ export default function ScoutPage() {
     }, [workspace])
 
     async function loadVendors() {
-        if (!workspace) return
+        if (!workspace || isDemoMode) return
 
         try {
             setIsLoading(true)
@@ -40,6 +41,21 @@ export default function ScoutPage() {
             console.error('Error loading vendors:', error)
         } finally {
             setIsLoading(false)
+        }
+    }
+
+    const toggleDemoMode = () => {
+        if (!isDemoMode) {
+            setIsDemoMode(true)
+            setVendors([
+                { id: '1', name: 'SecureCloud Inc.', domain: 'securecloud.io', risk_level: 'low', security_score: 95, breach_count: 0 },
+                { id: '2', name: 'Legacy Systems Ltd.', domain: 'legacysys.net', risk_level: 'critical', security_score: 45, breach_count: 3 },
+                { id: '3', name: 'PaymentGateway X', domain: 'pg-x.com', risk_level: 'medium', security_score: 72, breach_count: 1 },
+                { id: '4', name: 'Marketing Tool', domain: 'market-tool.com', risk_level: 'high', security_score: 58, breach_count: 2 },
+            ])
+        } else {
+            setIsDemoMode(false)
+            loadVendors()
         }
     }
 
@@ -72,6 +88,25 @@ export default function ScoutPage() {
                     </div>
                     <div className="flex items-center gap-3">
                         {workspace && <ExportButton module="scout" workspaceId={workspace.id} />}
+                        <button
+                            onClick={toggleDemoMode}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-colors ${isDemoMode
+                                ? 'bg-amber-500 hover:bg-amber-600 text-black'
+                                : 'bg-white/10 hover:bg-white/20 text-white'
+                                }`}
+                        >
+                            {isDemoMode ? (
+                                <>
+                                    <RotateCcw className="w-5 h-5" />
+                                    Clear Demo
+                                </>
+                            ) : (
+                                <>
+                                    <Database className="w-5 h-5 text-blue-400" />
+                                    Load Demo
+                                </>
+                            )}
+                        </button>
                         <button
                             onClick={() => setShowAddForm(true)}
                             className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold transition-colors"

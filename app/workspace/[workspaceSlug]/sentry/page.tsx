@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useWorkspace } from '@/contexts/WorkspaceContext'
 import { getSupabaseClient } from '@/lib/supabase/client'
-import { Search, Plus, Users, Shield } from 'lucide-react'
+import { Search, Plus, Users, Shield, RotateCcw, UserPlus } from 'lucide-react'
 import EmployeeScoreCard from '@/components/sentry/EmployeeScoreCard'
 import SecurityLeaderboard from '@/components/sentry/SecurityLeaderboard'
 import AddEmployeeForm from '@/components/workspace/sentry/AddEmployeeForm'
@@ -16,6 +16,7 @@ export default function SentryPage() {
     const [isLoading, setIsLoading] = useState(true)
     const [showAddForm, setShowAddForm] = useState(false)
     const [searchQuery, setSearchQuery] = useState('')
+    const [isDemoMode, setIsDemoMode] = useState(false)
 
     useEffect(() => {
         if (workspace) {
@@ -24,7 +25,7 @@ export default function SentryPage() {
     }, [workspace])
 
     async function loadEmployees() {
-        if (!workspace) return
+        if (!workspace || isDemoMode) return
 
         try {
             setIsLoading(true)
@@ -40,6 +41,21 @@ export default function SentryPage() {
             console.error('Error loading employees:', error)
         } finally {
             setIsLoading(false)
+        }
+    }
+
+    const toggleDemoMode = () => {
+        if (!isDemoMode) {
+            setIsDemoMode(true)
+            setEmployees([
+                { id: '1', name: 'Alice Johnson', email: 'alice@company.com', department: 'Engineering', security_score: 98, training_completed: 5, phishing_tests_passed: 12, phishing_tests_failed: 0 },
+                { id: '2', name: 'Bob Smith', email: 'bob@company.com', department: 'Sales', security_score: 45, training_completed: 1, phishing_tests_passed: 2, phishing_tests_failed: 3 },
+                { id: '3', name: 'Carol White', email: 'carol@company.com', department: 'HR', security_score: 88, training_completed: 4, phishing_tests_passed: 10, phishing_tests_failed: 1 },
+                { id: '4', name: 'Dave Brown', email: 'dave@company.com', department: 'Marketing', security_score: 62, training_completed: 2, phishing_tests_passed: 5, phishing_tests_failed: 2 },
+            ])
+        } else {
+            setIsDemoMode(false)
+            loadEmployees()
         }
     }
 
@@ -76,6 +92,25 @@ export default function SentryPage() {
                     </div>
                     <div className="flex items-center gap-3">
                         {workspace && <ExportButton module="sentry" workspaceId={workspace.id} />}
+                        <button
+                            onClick={toggleDemoMode}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-colors ${isDemoMode
+                                ? 'bg-amber-500 hover:bg-amber-600 text-black'
+                                : 'bg-white/10 hover:bg-white/20 text-white'
+                                }`}
+                        >
+                            {isDemoMode ? (
+                                <>
+                                    <RotateCcw className="w-5 h-5" />
+                                    Clear Demo
+                                </>
+                            ) : (
+                                <>
+                                    <Users className="w-5 h-5 text-purple-400" />
+                                    Load Demo
+                                </>
+                            )}
+                        </button>
                         <button
                             onClick={() => setShowAddForm(true)}
                             className="flex items-center gap-2 bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg font-semibold transition-colors"
