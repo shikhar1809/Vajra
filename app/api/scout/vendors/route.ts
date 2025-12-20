@@ -1,32 +1,82 @@
 import { NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 import { vendorScanner } from '@/lib/scout/vendor-scanner';
 import { riskEngine } from '@/lib/scout/risk-scoring';
+import { validateData, vendorScanSchema } from '@/lib/validation';
+import { rateLimit, rateLimitResponse } from '@/lib/rate-limit';
 
+const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
+// GET - Fetch all vendors from database
+export async function GET() {
+    try {
+        const { data: vendors, error } = await supabase
+            .from('vendors')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error('Error fetching vendors:', error);
+            return NextResponse.json(
+                { success: false, error: error.message },
+                { status: 500 }
+            );
+        }
+
+        return NextResponse.json({
+            success: true,
+            data: {
+                vendors: vendors || [],
+            },
+        });
+    } catch (error) {
+        console.error('Vendor GET error:', error);
+        return NextResponse.json(
+            { success: false, error: 'Failed to fetch vendors' },
+            { status: 500 }
+        );
+    }
+}
+
+// POST - Scan vendor and save to database
 export async function POST(request: Request) {
     try {
-        const { vendorId, domain } = await request.json();
+        // Rate limiting
+        const { success: rateLimitSuccess, remaining } = await rateLimit(request);
+        if (!rateLimitSuccess) {
+            return rateLimitResponse(remaining);
+        }
 
-        if (!domain) {
+        const body = await request.json();
+
+        // Validate input
+        const validation = validateData(vendorScanSchema, body);
+        if (!validation.success) {
             return NextResponse.json(
-                { success: false, error: 'Domain is required' },
+                { success: false, error: validation.error },
                 { status: 400 }
             );
         }
 
+        const { vendorId, domain } = validation.data;
+
         console.log(`[API] Scanning vendor: ${domain}`);
 
         // Perform security scan
-        const scanResult = await vendorScanner.scanVendor(vendorId || crypto.randomUUID(), domain);
+        const scanResult = await vendorScanner.scanVendor(vendorId, domain);
 
         // Calculate risk assessment
         const riskAssessment = riskEngine.assessRisk({
             securityScore: scanResult.scores.overall,
-            complianceScore: 75, // Simulated
-            reputationScore: 80, // Simulated
+            complianceScore: 75,
+            reputationScore: 80,
             incidentHistory: {
-                totalIncidents: 2,
+                totalIncidents: 0,
                 criticalIncidents: 0,
-                resolvedIncidents: 2,
+                resolvedIncidents: 0,
             },
             dataAccess: 'moderate',
             businessCriticality: 'medium',
@@ -35,12 +85,58 @@ export async function POST(request: Request) {
         // Generate recommendations
         const recommendations = vendorScanner.generateRecommendations(scanResult);
 
+        // Save vendor to database
+        const { data: vendor, error: vendorError } = await supabase
+            .from('vendors')
+            .upsert({
+                id: vendorId,
+                domain: domain,
+                security_score: scanResult.scores.overall,
+                status: 'active',
+                last_assessment: new Date().toISOString(),
+            }, {
+                onConflict: 'domain'
+            })
+            .select()
+            .single();
+
+        if (vendorError) {
+            console.error('Error saving vendor:', vendorError);
+        }
+
+        // Save detailed risk scores
+        if (vendor) {
+            const { error: scoreError } = await supabase
+                .from('vendor_risk_scores')
+                .insert({
+                    vendor_id: vendor.id,
+                    domain: domain,
+                    overall_score: scanResult.scores.overall,
+                    grade: scanResult.scores.overall >= 90 ? 'A' :
+                        scanResult.scores.overall >= 80 ? 'B' :
+                            scanResult.scores.overall >= 70 ? 'C' :
+                                scanResult.scores.overall >= 60 ? 'D' : 'F',
+                    network_security_score: scanResult.scores.ssl,
+                    dns_health_score: scanResult.scores.dns,
+                    application_security_score: scanResult.scores.headers,
+                    tls_configuration_score: scanResult.scores.ssl,
+                    findings: scanResult.findings,
+                    recommendations: recommendations,
+                    scan_duration_ms: 1000, // Placeholder
+                });
+
+            if (scoreError) {
+                console.error('Error saving risk scores:', scoreError);
+            }
+        }
+
         return NextResponse.json({
             success: true,
             data: {
                 scan: scanResult,
                 risk: riskAssessment,
                 recommendations,
+                vendor,
             },
         });
     } catch (error) {
@@ -50,39 +146,4 @@ export async function POST(request: Request) {
             { status: 500 }
         );
     }
-}
-
-export async function GET() {
-    // Return mock vendor data for testing
-    return NextResponse.json({
-        success: true,
-        data: {
-            vendors: [
-                {
-                    id: '1',
-                    name: 'CloudStorage Inc.',
-                    domain: 'cloudstorage.com',
-                    securityScore: 85,
-                    riskLevel: 'low',
-                    lastAssessment: new Date().toISOString(),
-                },
-                {
-                    id: '2',
-                    name: 'PaymentGateway Pro',
-                    domain: 'paymentgateway.com',
-                    securityScore: 72,
-                    riskLevel: 'medium',
-                    lastAssessment: new Date().toISOString(),
-                },
-                {
-                    id: '3',
-                    name: 'EmailService Ltd',
-                    domain: 'emailservice.com',
-                    securityScore: 45,
-                    riskLevel: 'high',
-                    lastAssessment: new Date().toISOString(),
-                },
-            ],
-        },
-    });
 }

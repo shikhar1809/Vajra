@@ -51,7 +51,7 @@ export function TrafficMonitor() {
             <Card className="cyber-card">
                 <CardHeader>
                     <CardTitle className="text-white flex items-center gap-2">
-                        <Activity className="w-5 h-5 text-cyber-blue animate-pulse" />
+                        <Activity className="w-5 h-5 text-red-500 animate-pulse" />
                         Real-Time Traffic Monitor
                         <span className="ml-auto text-sm font-normal text-gray-400">Last 30 minutes</span>
                     </CardTitle>
@@ -69,7 +69,7 @@ export function TrafficMonitor() {
         <Card className="cyber-card">
             <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2">
-                    <Activity className="w-5 h-5 text-cyber-blue animate-pulse" />
+                    <Activity className="w-5 h-5 text-red-500 animate-pulse" />
                     Real-Time Traffic Monitor
                     <span className="ml-auto text-sm font-normal text-gray-400">Last 30 minutes</span>
                 </CardTitle>
@@ -80,8 +80,8 @@ export function TrafficMonitor() {
                         <AreaChart data={trafficData}>
                             <defs>
                                 <linearGradient id="colorRequests" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#0EA5E9" stopOpacity={0.8} />
-                                    <stop offset="95%" stopColor="#0EA5E9" stopOpacity={0} />
+                                    <stop offset="5%" stopColor="#EF4444" stopOpacity={0.8} />
+                                    <stop offset="95%" stopColor="#EF4444" stopOpacity={0} />
                                 </linearGradient>
                             </defs>
                             <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
@@ -105,7 +105,7 @@ export function TrafficMonitor() {
                             <Area
                                 type="monotone"
                                 dataKey="requests"
-                                stroke="#0EA5E9"
+                                stroke="#EF4444"
                                 fillOpacity={1}
                                 fill="url(#colorRequests)"
                                 strokeWidth={2}

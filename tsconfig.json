@@ -17,11 +17,13 @@
         "isolatedModules": true,
         "jsx": "preserve",
         "incremental": true,
+        "forceConsistentCasingInFileNames": false,
         "plugins": [
             {
                 "name": "next"
             }
         ],
+        "baseUrl": ".",
         "paths": {
             "@/*": [
                 "./*"

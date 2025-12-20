@@ -1,21 +1,57 @@
 import { NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 import { phishingDetector } from '@/lib/sentry/phishing-detector';
+import { validateData, phishingCheckSchema } from '@/lib/validation';
+import { rateLimit, rateLimitResponse } from '@/lib/rate-limit';
+
+const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export async function POST(request: Request) {
     try {
-        const { url, content } = await request.json();
+        // Rate limiting
+        const { success: rateLimitSuccess, remaining } = await rateLimit(request);
+        if (!rateLimitSuccess) {
+            return rateLimitResponse(remaining);
+        }
 
-        if (!url) {
+        const body = await request.json();
+
+        // Validate input
+        const validation = validateData(phishingCheckSchema, body);
+        if (!validation.success) {
             return NextResponse.json(
-                { success: false, error: 'URL is required' },
+                { success: false, error: validation.error },
                 { status: 400 }
             );
         }
 
+        const { url } = validation.data;
+
         console.log(`[API] Checking URL for phishing: ${url}`);
 
         // Perform phishing check
-        const result = await phishingDetector.checkURL(url, content);
+        const result = await phishingDetector.checkURL(url);
+
+        // Save to database
+        const { data: savedCheck, error: dbError } = await supabase
+            .from('phishing_checks')
+            .insert({
+                url,
+                is_safe: result.isSafe,
+                threat_level: result.threatLevel,
+                confidence: result.confidence,
+                threats: result.threats,
+                recommendations: result.recommendations,
+            })
+            .select()
+            .single();
+
+        if (dbError) {
+            console.error('Error saving phishing check:', dbError);
+        }
 
         return NextResponse.json({
             success: true,
@@ -30,39 +66,33 @@ export async function POST(request: Request) {
     }
 }
 
-// Batch check endpoint
-export async function PUT(request: Request) {
+// GET - Fetch recent phishing checks
+export async function GET() {
     try {
-        const { urls } = await request.json();
+        const { data: checks, error } = await supabase
+            .from('phishing_checks')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(50);
 
-        if (!urls || !Array.isArray(urls)) {
+        if (error) {
+            console.error('Error fetching phishing checks:', error);
             return NextResponse.json(
-                { success: false, error: 'URLs array is required' },
-                { status: 400 }
+                { success: false, error: error.message },
+                { status: 500 }
             );
         }
-
-        console.log(`[API] Batch checking ${urls.length} URLs`);
-
-        const results = await phishingDetector.batchCheck(urls);
 
         return NextResponse.json({
             success: true,
             data: {
-                results,
-                summary: {
-                    total: results.length,
-                    safe: results.filter(r => r.isSafe).length,
-                    suspicious: results.filter(r => r.threatLevel === 'suspicious').length,
-                    dangerous: results.filter(r => r.threatLevel === 'dangerous').length,
-                    malicious: results.filter(r => r.threatLevel === 'malicious').length,
-                },
+                checks: checks || [],
             },
         });
     } catch (error) {
-        console.error('Batch phishing check error:', error);
+        console.error('Phishing GET error:', error);
         return NextResponse.json(
-            { success: false, error: 'Failed to check URLs' },
+            { success: false, error: 'Failed to fetch checks' },
             { status: 500 }
         );
     }

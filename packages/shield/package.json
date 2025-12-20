@@ -1,0 +1,35 @@
+{
+    "name": "@shikhar1809/vajra-shield",
+    "version": "1.0.0",
+    "description": "Vajra Shield - Bot detection, traffic monitoring, and bunker mode protection for your applications",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "scripts": {
+        "build": "tsc",
+        "prepublishOnly": "npm run build"
+    },
+    "keywords": [
+        "security",
+        "bot-detection",
+        "ddos-protection",
+        "traffic-monitoring",
+        "middleware"
+    ],
+    "author": "Vajra Security",
+    "license": "MIT",
+    "peerDependencies": {
+        "next": ">=13.0.0"
+    },
+    "dependencies": {
+        "@shikhar1809/vajra-shield": "^1.0.0",
+        "node-fetch": "^3.3.2"
+    },
+    "devDependencies": {
+        "@types/node": "^20.0.0",
+        "typescript": "^5.0.0"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/shikhar1809/Vajra"
+    }
+}

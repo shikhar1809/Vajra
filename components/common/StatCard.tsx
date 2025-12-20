@@ -1,6 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LucideIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
+import React from 'react';
+import { LucideIcon } from 'lucide-react';
 
 interface StatCardProps {
     title: string;
@@ -10,30 +9,35 @@ interface StatCardProps {
         value: number;
         isPositive: boolean;
     };
-    className?: string;
     iconColor?: string;
 }
 
-export function StatCard({ title, value, icon: Icon, trend, className, iconColor = "text-cyber-blue" }: StatCardProps) {
+export const StatCard = React.memo<StatCardProps>(({
+    title,
+    value,
+    icon: Icon,
+    trend,
+    iconColor = "text-red-400"
+}) => {
     return (
-        <Card className={cn("stat-card", className)}>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-gray-400">{title}</CardTitle>
-                <Icon className={cn("w-5 h-5", iconColor)} />
-            </CardHeader>
-            <CardContent>
-                <div className="text-3xl font-bold text-slate-900">
-                    {typeof value === 'number' && isNaN(value) ? '0' : value}
+        <div className="cyber-card p-6">
+            <div className="flex items-start justify-between">
+                <div className="flex-1">
+                    <p className="text-sm text-gray-400 mb-2">{title}</p>
+                    <p className="text-3xl font-bold text-white">{value}</p>
+                    {trend && (
+                        <div className={`flex items-center gap-1 mt-2 text-sm ${trend.isPositive ? 'text-green-500' : 'text-red-500'}`}>
+                            <span>{trend.isPositive ? '↑' : '↓'}</span>
+                            <span>{Math.abs(trend.value)}%</span>
+                        </div>
+                    )}
                 </div>
-                {trend && (
-                    <p className={cn(
-                        "text-xs mt-1",
-                        trend.isPositive ? "text-green-500" : "text-red-500"
-                    )}>
-                        {trend.isPositive ? "+" : ""}{trend.value}% from last period
-                    </p>
-                )}
-            </CardContent>
-        </Card>
+                <div className={`p-3 bg-white/5 rounded-lg ${iconColor}`}>
+                    <Icon className="w-6 h-6" />
+                </div>
+            </div>
+        </div>
     );
-}
+});
+
+StatCard.displayName = 'StatCard';

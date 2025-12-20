@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Canvas, extend, useFrame } from '@react-three/fiber';
 import { useGLTF, useTexture, Environment, Lightformer } from '@react-three/drei';
+import { useDevicePerformance } from '@/hooks/useDevicePerformance';
 import {
   BallCollider,
   CuboidCollider,
@@ -31,25 +32,22 @@ export default function Lanyard({
   fov = 20,
   transparent = true
 }: LanyardProps) {
-  const [isMobile, setIsMobile] = useState<boolean>(() => typeof window !== 'undefined' && window.innerWidth < 768);
+  const { isMobile, isTablet } = useDevicePerformance();
 
-  useEffect(() => {
-    const handleResize = (): void => setIsMobile(window.innerWidth < 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  // Adjust FOV for better strap visibility on mobile
+  const adjustedFov = isMobile ? 22 : fov;
 
   return (
     <div className="lanyard-wrapper">
       <Canvas
-        camera={{ position, fov }}
-        dpr={[1, isMobile ? 1.5 : 2]}
-        gl={{ alpha: transparent }}
+        camera={{ position, fov: adjustedFov }}
+        dpr={[1, 2]}
+        gl={{ alpha: transparent, antialias: !isMobile }}
         onCreated={({ gl }) => gl.setClearColor(new THREE.Color(0x000000), transparent ? 0 : 1)}
       >
         <ambientLight intensity={Math.PI} />
         <Physics gravity={gravity} timeStep={isMobile ? 1 / 30 : 1 / 60}>
-          <Band isMobile={isMobile} />
+          <Band isMobile={isMobile} isTablet={isTablet} />
         </Physics>
         <Environment blur={0.75}>
           <Lightformer
@@ -90,9 +88,10 @@ interface BandProps {
   maxSpeed?: number;
   minSpeed?: number;
   isMobile?: boolean;
+  isTablet?: boolean;
 }
 
-function Band({ maxSpeed = 50, minSpeed = 0, isMobile = false }: BandProps) {
+function Band({ maxSpeed = 50, minSpeed = 0, isMobile = false, isTablet = false }: BandProps) {
   // Using "any" for refs since the exact types depend on Rapier's internals
   const band = useRef<any>(null);
   const fixed = useRef<any>(null);
@@ -172,7 +171,8 @@ function Band({ maxSpeed = 50, minSpeed = 0, isMobile = false }: BandProps) {
       curve.points[1].copy(j2.current.lerped);
       curve.points[2].copy(j1.current.lerped);
       curve.points[3].copy(fixed.current.translation());
-      band.current.geometry.setPoints(curve.getPoints(isMobile ? 16 : 32));
+      // Increase curve points for smoother rendering on mobile
+      band.current.geometry.setPoints(curve.getPoints(isMobile ? 24 : isTablet ? 28 : 32));
       ang.copy(card.current.angvel());
       rot.copy(card.current.rotation());
       card.current.setAngvel({ x: ang.x, y: ang.y - rot.y * 0.25, z: ang.z });
@@ -234,13 +234,15 @@ function Band({ maxSpeed = 50, minSpeed = 0, isMobile = false }: BandProps) {
       <mesh ref={band}>
         <meshLineGeometry />
         <meshLineMaterial
-          color="white"
+          color="#ffdddd"
+          emissive="#ff4444"
+          emissiveIntensity={0.15}
           depthTest={false}
-          resolution={isMobile ? [1000, 2000] : [1000, 1000]}
+          resolution={isMobile ? [window.innerWidth * 2, window.innerHeight * 2] : isTablet ? [1536, 2048] : [1920, 1080]}
           useMap
           map={lanyardTexture}
           repeat={[-4, 1]}
-          lineWidth={1}
+          lineWidth={isMobile ? 3 : isTablet ? 2 : 1.5}
         />
       </mesh>
     </>

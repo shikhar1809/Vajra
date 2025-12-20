@@ -1,68 +1,129 @@
+import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
-import { anomalyEngine } from '@/lib/shield/anomaly-detector';
+
+const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export async function GET() {
     try {
-        // Simulate traffic data for the last 30 minutes
-        const trafficData = [];
-        const now = new Date();
+        // Get traffic logs from last 24 hours
+        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
-        for (let i = 29; i >= 0; i--) {
-            const timestamp = new Date(now.getTime() - i * 60000);
-            const baseRequests = 200 + Math.random() * 100;
+        const { data: trafficLogs, error: trafficError } = await supabase
+            .from('traffic_logs')
+            .select('*')
+            .gte('timestamp', twentyFourHoursAgo)
+            .order('timestamp', { ascending: false })
+            .limit(1000);
 
-            // Simulate a traffic spike at minute 5
-            const requestCount = i === 5
-                ? baseRequests * 4.5 // 450% spike
-                : baseRequests;
-
-            trafficData.push({
-                timestamp,
-                requestCount: Math.floor(requestCount),
-                uniqueIPs: Math.floor(requestCount * 0.6),
-                avgResponseTime: Math.floor(50 + Math.random() * 100),
-                statusCodes: {
-                    200: Math.floor(requestCount * 0.9),
-                    404: Math.floor(requestCount * 0.05),
-                    500: Math.floor(requestCount * 0.05),
-                },
-            });
+        if (trafficError) {
+            console.error('Error fetching traffic logs:', trafficError);
         }
 
-        // Run anomaly detection
-        const anomalies = await anomalyEngine.analyzeTraffic(trafficData);
+        // Get anomaly events
+        const { data: anomalies, error: anomalyError } = await supabase
+            .from('anomaly_events')
+            .select('*')
+            .eq('resolved', false)
+            .order('timestamp', { ascending: false })
+            .limit(50);
+
+        if (anomalyError) {
+            console.error('Error fetching anomalies:', anomalyError);
+        }
+
+        // Get bot detections from last hour
+        const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+
+        const { data: botDetections, error: botError } = await supabase
+            .from('bot_detections')
+            .select('*')
+            .gte('detected_at', oneHourAgo)
+            .order('detected_at', { ascending: false })
+            .limit(100);
+
+        if (botError) {
+            console.error('Error fetching bot detections:', botError);
+        }
+
+        // Calculate summary statistics
+        const totalRequests = trafficLogs?.length || 0;
+        const botCount = botDetections?.filter(b => b.classification === 'likely-bot' || b.classification === 'verified-bot').length || 0;
+        const humanCount = botDetections?.filter(b => b.classification === 'likely-human' || b.classification === 'verified-human').length || 0;
+
+        // Group traffic by hour for chart
+        const trafficByHour = new Array(24).fill(0);
+        trafficLogs?.forEach(log => {
+            const hour = new Date(log.timestamp).getHours();
+            trafficByHour[hour]++;
+        });
 
         return NextResponse.json({
             success: true,
             data: {
-                trafficData: trafficData.map(d => ({
-                    time: d.timestamp.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-                    requests: d.requestCount,
-                    uniqueIPs: d.uniqueIPs,
-                    avgResponseTime: d.avgResponseTime,
-                })),
-                anomalies: anomalies.map(a => ({
-                    type: a.type,
-                    severity: a.severity,
-                    description: a.description,
-                    confidence: a.confidence,
-                    recommendBunkerMode: a.recommendBunkerMode,
-                    metrics: a.metrics,
-                })),
                 summary: {
-                    totalRequests: trafficData.reduce((sum, d) => sum + d.requestCount, 0),
-                    avgRequestsPerMinute: Math.floor(
-                        trafficData.reduce((sum, d) => sum + d.requestCount, 0) / trafficData.length
-                    ),
-                    peakRequests: Math.max(...trafficData.map(d => d.requestCount)),
-                    anomaliesDetected: anomalies.length,
+                    totalRequests,
+                    botCount,
+                    humanCount,
+                    anomalyCount: anomalies?.length || 0,
                 },
+                trafficLogs: trafficLogs || [],
+                anomalies: anomalies || [],
+                botDetections: botDetections || [],
+                trafficByHour,
             },
         });
     } catch (error) {
-        console.error('Traffic analysis error:', error);
+        console.error('Shield traffic API error:', error);
         return NextResponse.json(
-            { success: false, error: 'Failed to analyze traffic' },
+            {
+                success: false,
+                error: 'Failed to fetch traffic data',
+            },
+            { status: 500 }
+        );
+    }
+}
+
+// POST endpoint to log new traffic
+export async function POST(request: Request) {
+    try {
+        const body = await request.json();
+        const { ip_address, user_agent, request_method, request_path, status_code, response_time_ms } = body;
+
+        // Insert traffic log
+        const { data, error } = await supabase
+            .from('traffic_logs')
+            .insert({
+                ip_address,
+                user_agent,
+                request_method,
+                request_path,
+                status_code,
+                response_time_ms,
+                timestamp: new Date().toISOString(),
+            })
+            .select()
+            .single();
+
+        if (error) {
+            console.error('Error inserting traffic log:', error);
+            return NextResponse.json(
+                { success: false, error: error.message },
+                { status: 500 }
+            );
+        }
+
+        return NextResponse.json({
+            success: true,
+            data,
+        });
+    } catch (error) {
+        console.error('Shield traffic POST error:', error);
+        return NextResponse.json(
+            { success: false, error: 'Failed to log traffic' },
             { status: 500 }
         );
     }

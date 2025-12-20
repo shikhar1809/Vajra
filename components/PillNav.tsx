@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { gsap } from 'gsap';
+import { useLoading } from '@/contexts/LoadingContext';
 import './PillNav.css';
 
 export type PillNavItem = {
@@ -42,6 +43,7 @@ const PillNav: React.FC<PillNavProps> = ({
   initialLoadAnimation = true
 }) => {
   const pathname = usePathname();
+  const { startLoading } = useLoading();
   const currentActiveHref = activeHref || pathname;
   const resolvedPillTextColor = pillTextColor ?? baseColor;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -264,6 +266,11 @@ const PillNav: React.FC<PillNavProps> = ({
                   aria-label={item.ariaLabel || item.label}
                   onMouseEnter={() => handleEnter(i)}
                   onMouseLeave={() => handleLeave(i)}
+                  onClick={() => {
+                    if (pathname !== item.href) {
+                      startLoading();
+                    }
+                  }}
                 >
                   <span
                     className="hover-circle"
@@ -302,7 +309,12 @@ const PillNav: React.FC<PillNavProps> = ({
               <Link
                 href={item.href}
                 className={`mobile-menu-link${currentActiveHref === item.href ? ' is-active' : ''}`}
-                onClick={() => setIsMobileMenuOpen(false)}
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  if (pathname !== item.href) {
+                    startLoading();
+                  }
+                }}
               >
                 {item.label}
               </Link>

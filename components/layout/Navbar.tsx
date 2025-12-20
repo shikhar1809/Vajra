@@ -11,7 +11,7 @@ export function Navbar() {
         { name: "Shield", href: "/shield" },
         { name: "Scout", href: "/scout" },
         { name: "Sentry", href: "/sentry" },
-        { name: "Agenios", href: "/agenios/scan" },
+        { name: "Agenios", href: "/agenios" },
     ];
 
     return (

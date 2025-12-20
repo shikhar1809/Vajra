@@ -66,7 +66,7 @@ export default function AgeniosPage() {
     const getSeverityColor = (severity: string) => {
         switch (severity.toLowerCase()) {
             case 'critical': return 'bg-red-500';
-            case 'high': return 'bg-orange-500';
+            case 'high': return 'bg-red-600';
             case 'medium': return 'bg-yellow-500';
             case 'low': return 'bg-blue-500';
             default: return 'bg-gray-500';
@@ -78,8 +78,8 @@ export default function AgeniosPage() {
             <div className="container mx-auto max-w-6xl space-y-6">
                 {/* Header */}
                 <div className="flex items-center gap-3 mb-8">
-                    <div className="p-3 bg-orange-500/20 rounded-lg">
-                        <Code className="w-8 h-8 text-orange-400" />
+                    <div className="p-3 bg-red-500/20 rounded-lg">
+                        <Code className="w-8 h-8 text-red-400" />
                     </div>
                     <div>
                         <h1 className="text-3xl font-bold text-white">Vajra Agenios</h1>
@@ -88,10 +88,10 @@ export default function AgeniosPage() {
                 </div>
 
                 {/* Scan Configuration */}
-                <Card className="cyber-card border-orange-500/30">
+                <Card className="cyber-card border-red-500/30">
                     <CardHeader>
                         <CardTitle className="text-white flex items-center gap-2">
-                            <Target className="w-5 h-5 text-orange-400" />
+                            <Target className="w-5 h-5 text-red-400" />
                             Start Security Scan
                         </CardTitle>
                     </CardHeader>
@@ -106,7 +106,7 @@ export default function AgeniosPage() {
                                 onChange={(e) => setTargetURL(e.target.value)}
                                 onKeyPress={(e) => e.key === 'Enter' && handleStartScan()}
                                 placeholder="https://example.com"
-                                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-orange-500"
+                                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-red-500"
                             />
                         </div>
 
@@ -120,8 +120,8 @@ export default function AgeniosPage() {
                                         key={type}
                                         onClick={() => setScanType(type)}
                                         className={`px-4 py-2 rounded-lg font-medium transition-colors ${scanType === type
-                                                ? 'bg-orange-500 text-white'
-                                                : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                                            ? 'bg-red-500 text-white'
+                                            : 'bg-white/5 text-gray-400 hover:bg-white/10'
                                             }`}
                                     >
                                         {type.charAt(0).toUpperCase() + type.slice(1)}
@@ -133,7 +133,7 @@ export default function AgeniosPage() {
                         <button
                             onClick={handleStartScan}
                             disabled={scanning}
-                            className="w-full px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors font-semibold disabled:opacity-50 flex items-center justify-center gap-2"
+                            className="w-full px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors font-semibold disabled:opacity-50 flex items-center justify-center gap-2"
                         >
                             {scanning ? (
                                 <>
@@ -149,18 +149,18 @@ export default function AgeniosPage() {
                         </button>
 
                         <div className="text-xs text-gray-400">
-                            💡 Try: <button onClick={() => setTargetURL('https://vulnerable-test-site.com')} className="text-orange-400 hover:underline">vulnerable-test-site.com</button>
+                            💡 Try: <button onClick={() => setTargetURL('https://vulnerable-test-site.com')} className="text-red-400 hover:underline">vulnerable-test-site.com</button>
                         </div>
                     </CardContent>
                 </Card>
 
                 {/* Scan Results */}
                 {result && (
-                    <Card className="cyber-card border-orange-500/50">
+                    <Card className="cyber-card border-red-500/50">
                         <CardHeader>
                             <CardTitle className="text-white flex items-center justify-between">
                                 <span className="flex items-center gap-2">
-                                    <FileText className="w-5 h-5 text-orange-400" />
+                                    <FileText className="w-5 h-5 text-red-400" />
                                     Scan Results
                                 </span>
                                 <Badge className={`${result.summary.securityScore >= 80 ? 'bg-green-500' : result.summary.securityScore >= 60 ? 'bg-yellow-500' : 'bg-red-500'}`}>
@@ -180,8 +180,8 @@ export default function AgeniosPage() {
                                     <div className="text-2xl font-bold text-red-400">{result.summary.criticalCount}</div>
                                     <div className="text-xs text-gray-400 mt-1">Critical</div>
                                 </div>
-                                <div className="p-4 bg-orange-500/20 border border-orange-500/30 rounded-lg text-center">
-                                    <div className="text-2xl font-bold text-orange-400">{result.summary.highCount}</div>
+                                <div className="p-4 bg-red-600/20 border border-red-600/30 rounded-lg text-center">
+                                    <div className="text-2xl font-bold text-red-400">{result.summary.highCount}</div>
                                     <div className="text-xs text-gray-400 mt-1">High</div>
                                 </div>
                                 <div className="p-4 bg-yellow-500/20 border border-yellow-500/30 rounded-lg text-center">
@@ -198,7 +198,7 @@ export default function AgeniosPage() {
                             {result.vulnerabilities.length > 0 && (
                                 <div className="space-y-3">
                                     <h3 className="text-white font-semibold flex items-center gap-2">
-                                        <AlertTriangle className="w-4 h-4 text-orange-400" />
+                                        <AlertTriangle className="w-4 h-4 text-red-400" />
                                         Vulnerabilities Found ({result.summary.totalVulnerabilities})
                                     </h3>
                                     {result.vulnerabilities.slice(0, 5).map((vuln, i) => (

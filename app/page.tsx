@@ -1,25 +1,48 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { Shield, Search, Eye, Code, ArrowRight, CheckCircle2, Sparkles } from "lucide-react";
+import { Shield, Search, Eye, Code, ArrowRight } from "lucide-react";
 import FuzzyText from "@/components/FuzzyText";
-import DecryptedText from "@/components/DecryptedText";
-import SimpleCard from "@/components/SimpleCard";
 import CountUp from "@/components/CountUp";
 import TrueFocus from "@/components/TrueFocus";
-import { MatrixText } from "@/components/ui/matrix-text";
-import { KeyboardKeys } from "@/components/ui/keyboard-keys";
-import FlowingMenu from "@/components/FlowingMenu";
-
-import Lanyard from "@/components/Lanyard";
 import BlurText from "@/components/BlurText";
-import Ribbons from "@/components/Ribbons";
+import LazyComponent from "@/components/LazyComponent";
 
-// Dynamic import to prevent SSR issues with Three.js
-const LightPillar = dynamic(() => import("@/components/LightPillar"), { ssr: false });
-const CastleScene = dynamic(() => import("@/components/CastleScene"), { ssr: false });
+// Dynamic imports with loading states for 3D components (no SSR)
+const LightPillar = dynamic(() => import("@/components/LightPillar"), {
+    ssr: false,
+    loading: () => <div className="w-full h-full bg-black" />
+});
+
+const CastleScene = dynamic(() => import("@/components/CastleScene"), {
+    ssr: false,
+    loading: () => <div className="w-full h-64 bg-black/50 rounded-xl animate-pulse" />
+});
+
+const Lanyard = dynamic(() => import("@/components/Lanyard"), {
+    ssr: false,
+    loading: () => <div className="w-full h-screen flex items-center justify-center" />
+});
+
+const Ribbons = dynamic(() => import("@/components/Ribbons"), {
+    ssr: false,
+    loading: () => null
+});
+
+// Lazy load heavy below-fold components
+const StoryFeatures = dynamic(() => import("@/components/StoryFeatures"), {
+    loading: () => <div className="w-full h-screen bg-black/50 animate-pulse" />
+});
+
+const LetsWorkTogether = dynamic(() => import("@/components/lets-work-section").then(mod => ({ default: mod.LetsWorkTogether })), {
+    loading: () => <div className="w-full h-screen bg-black/50 animate-pulse" />
+});
+
+const Footer = dynamic(() => import("@/components/Footer"), {
+    loading: () => null
+});
 
 export default function HomePage() {
     const [activeModule, setActiveModule] = useState(0);
@@ -156,13 +179,12 @@ export default function HomePage() {
 
                     {/* Main Message */}
                     <div className="mb-6">
-                        <MatrixText
-                            text="YOUR DIGITAL FORTRESS"
-                            className="text-5xl md:text-7xl font-black text-red-500"
-                            initialDelay={200}
-                            letterAnimationDuration={500}
-                            letterInterval={50}
-                        />
+                        <h1 className="text-5xl md:text-7xl font-black text-white mb-4 leading-tight drop-shadow-[0_0_30px_rgba(255,255,255,0.3)]">
+                            MAKE YOUR BUSINESS A<br />
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-red-100 to-white">
+                                DIGITAL FORTRESS
+                            </span>
+                        </h1>
                     </div>
 
                     {/* Interactive 3D Castle */}
@@ -231,170 +253,22 @@ export default function HomePage() {
                 </div>
             </section>
 
-            {/* Core Modules Showcase */}
-            <section className="container mx-auto px-6 py-20 max-w-6xl">
-                <div className="mb-20">
-                    <h2 className="text-4xl font-bold text-white text-center mb-12">
-                        Core Security Modules
-                    </h2>
+            {/* Core Modules Showcase - Lazy loaded */}
+            <LazyComponent rootMargin="100px">
+                <section className="w-full">
+                    <StoryFeatures />
+                </section>
+            </LazyComponent>
 
-                    {/* FlowingMenu - Four Modules */}
-                    <div style={{ height: '600px', position: 'relative' }}>
-                        <FlowingMenu items={[
-                            {
-                                link: '/shield',
-                                text: 'SHIELD',
-                                image: 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=600&h=400&fit=crop'
-                            },
-                            {
-                                link: '/sentry',
-                                text: 'SENTRY',
-                                image: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=600&h=400&fit=crop'
-                            },
-                            {
-                                link: '/scout',
-                                text: 'SCOUT',
-                                image: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=600&h=400&fit=crop'
-                            },
-                            {
-                                link: '/agenios',
-                                text: 'AGENIOS',
-                                image: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=600&h=400&fit=crop'
-                            }
-                        ]} />
-                    </div>
+            {/* Call to Action - Let's Work Together - Lazy loaded */}
+            <LazyComponent rootMargin="100px">
+                <section className="w-full">
+                    <LetsWorkTogether />
+                </section>
+            </LazyComponent>
 
-                    {/* The Story - 4 Simple Cards */}
-                    <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
-                        {modules.map((module, i) => (
-                            <Link key={i} href={module.href}>
-                                <div className={`group relative p-8 bg-slate-800/50 backdrop-blur-sm rounded-2xl border-2 transition-all duration-300 ${activeModule === i
-                                    ? 'border-red-500 shadow-xl shadow-red-500/20 scale-[1.02]'
-                                    : 'border-slate-700 hover:border-red-500/50 hover:shadow-lg hover:shadow-red-500/10'
-                                    }`}>
-                                    {/* Icon */}
-                                    <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${getColorClasses(module.color)} p-3 mb-4 transition-transform group-hover:scale-110`}>
-                                        <module.icon className="w-full h-full text-white" />
-                                    </div>
-
-                                    {/* Content */}
-                                    <h3 className="text-2xl font-bold text-white mb-2">{module.title}</h3>
-                                    <p className="text-slate-300 mb-4">{module.description}</p>
-
-                                    {/* Simple Arrow */}
-                                    <div className="flex items-center gap-2 text-red-400 font-semibold group-hover:gap-3 transition-all">
-                                        Try {module.name}
-                                        <ArrowRight className="w-4 h-4" />
-                                    </div>
-                                </div>
-                            </Link>
-                        ))}
-                    </div>
-                </div>
-            </section>
-
-            {/* Simple How It Works */}
-            <section className="bg-slate-800/50 py-20 border-y border-slate-700">
-                <div className="container mx-auto px-6 max-w-4xl">
-                    <div className="text-center mb-12">
-                        <h2 className="text-4xl font-bold text-white mb-4">
-                            How Vajra Protects You
-                        </h2>
-                        <p className="text-lg text-slate-300">
-                            Three simple steps to complete security
-                        </p>
-                    </div>
-
-                    <div className="space-y-8">
-                        {/* Step 1 */}
-                        <div className="flex gap-6 items-start">
-                            <div className="flex-shrink-0 w-12 h-12 rounded-full bg-red-500/20 border border-red-500/30 flex items-center justify-center">
-                                <span className="text-red-400 font-bold text-lg">1</span>
-                            </div>
-                            <div>
-                                <h3 className="text-xl font-bold text-white mb-2">Connect Your Systems</h3>
-                                <p className="text-slate-300">Link your website, vendors, and team in minutes. No complex setup required.</p>
-                            </div>
-                        </div>
-
-                        {/* Step 2 */}
-                        <div className="flex gap-6 items-start">
-                            <div className="flex-shrink-0 w-12 h-12 rounded-full bg-orange-500/20 border border-orange-500/30 flex items-center justify-center">
-                                <span className="text-orange-400 font-bold text-lg">2</span>
-                            </div>
-                            <div>
-                                <h3 className="text-xl font-bold text-white mb-2">AI Monitors Everything</h3>
-                                <p className="text-slate-300">Our intelligent systems watch for threats 24/7, learning and adapting constantly.</p>
-                            </div>
-                        </div>
-
-                        {/* Step 3 */}
-                        <div className="flex gap-6 items-start">
-                            <div className="flex-shrink-0 w-12 h-12 rounded-full bg-green-500/20 border border-green-500/30 flex items-center justify-center">
-                                <span className="text-green-400 font-bold text-lg">3</span>
-                            </div>
-                            <div>
-                                <h3 className="text-xl font-bold text-white mb-2">Stay Protected</h3>
-                                <p className="text-slate-300">Get instant alerts when threats are detected and blocked automatically.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            {/* Simple Trust Section */}
-            <section className="py-20 bg-gradient-to-br from-slate-900 to-slate-800" >
-                <div className="container mx-auto px-6 max-w-4xl text-center">
-                    <Sparkles className="w-12 h-12 text-red-400 mx-auto mb-6" />
-                    <h2 className="text-3xl font-bold text-white mb-4">
-                        Built for Real Protection
-                    </h2>
-                    <p className="text-lg text-slate-300 mb-8">
-                        Not just alerts—actual defense that stops attacks before they reach you
-                    </p>
-
-                    <div className="grid md:grid-cols-3 gap-8 mb-12">
-                        <div>
-                            <div className="text-4xl font-bold text-red-400 mb-2">99.9%</div>
-                            <div className="text-slate-400">Threat Detection</div>
-                        </div>
-                        <div>
-                            <div className="text-4xl font-bold text-orange-400 mb-2">&lt;100ms</div>
-                            <div className="text-slate-400">Response Time</div>
-                        </div>
-                        <div>
-                            <div className="text-4xl font-bold text-green-400 mb-2">24/7</div>
-                            <div className="text-slate-400">Monitoring</div>
-                        </div>
-                    </div>
-
-                    <Link
-                        href="/shield"
-                        className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl font-semibold hover:from-red-600 hover:to-red-700 hover:shadow-lg hover:shadow-red-500/50 transition-all"
-                    >
-                        Start Protecting Your Business
-                        <ArrowRight className="w-5 h-5" />
-                    </Link>
-                </div>
-            </section>
-
-            {/* Final CTA */}
-            <section className="container mx-auto px-6 py-20 max-w-4xl text-center">
-                <h2 className="text-4xl font-bold text-white mb-6">
-                    Ready to Secure Your Future?
-                </h2>
-                <p className="text-xl text-slate-300 mb-10">
-                    Join the businesses that trust Vajra to keep them safe from the ever-evolving cyber threat landscape.
-                </p>
-
-                <Link
-                    href="/shield"
-                    className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl font-semibold hover:from-red-600 hover:to-red-700 hover:shadow-lg hover:shadow-red-500/50 transition-all"
-                >
-                    Start Protecting Your Business
-                    <ArrowRight className="w-5 h-5" />
-                </Link>
-            </section>
+            {/* Footer - Creator Credit */}
+            <Footer />
         </div>
     );
 }

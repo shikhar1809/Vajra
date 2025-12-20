@@ -177,7 +177,7 @@ export default function FinancialDocumentUpload() {
             >
                 <input {...getInputProps()} />
                 <Upload className="w-12 h-12 mx-auto mb-4 text-slate-400" />
-                <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
+                <h3 className="text-lg font-semibold text-white mb-2">
                     Upload Financial Documents
                 </h3>
                 <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
@@ -191,7 +191,7 @@ export default function FinancialDocumentUpload() {
             {/* File List */}
             {files.length > 0 && (
                 <div className="space-y-3">
-                    <h4 className="text-sm font-semibold text-slate-900 dark:text-white">
+                    <h4 className="text-sm font-semibold text-white">
                         Uploaded Files ({files.length})
                     </h4>
                     {files.map((file) => (
@@ -201,7 +201,7 @@ export default function FinancialDocumentUpload() {
                         >
                             {getStatusIcon(file.status)}
                             <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-slate-900 dark:text-white truncate">
+                                <p className="text-sm font-medium text-white truncate">
                                     {file.file.name}
                                 </p>
                                 <p className="text-xs text-slate-500 dark:text-slate-400">

@@ -38,7 +38,8 @@
   display: flex;
   align-items: center;
   height: var(--nav-h);
-  background: transparent;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
   border-radius: 9999px;
 }
 
