@@ -70,23 +70,23 @@ export default function TeamPage() {
 
             {/* Stats */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-                <div className="bg-slate-900/30 backdrop-blur-md border border-slate-800/50 rounded-lg p-4">
+                <div className="bg-slate-900/20 backdrop-blur-md border border-slate-800/50 rounded-lg p-4">
                     <div className="text-sm text-slate-400 mb-1">Total Members</div>
                     <div className="text-2xl font-bold text-white">{members.length}</div>
                 </div>
-                <div className="bg-slate-900/30 backdrop-blur-md border border-slate-800/50 rounded-lg p-4">
+                <div className="bg-slate-900/20 backdrop-blur-md border border-slate-800/50 rounded-lg p-4">
                     <div className="text-sm text-slate-400 mb-1">Active</div>
                     <div className="text-2xl font-bold text-green-500">
                         {members.filter(m => m.status === 'active').length}
                     </div>
                 </div>
-                <div className="bg-slate-900/30 backdrop-blur-md border border-slate-800/50 rounded-lg p-4">
+                <div className="bg-slate-900/20 backdrop-blur-md border border-slate-800/50 rounded-lg p-4">
                     <div className="text-sm text-slate-400 mb-1">Admins</div>
                     <div className="text-2xl font-bold text-orange-500">
                         {members.filter(m => m.role === 'admin' || m.role === 'owner').length}
                     </div>
                 </div>
-                <div className="bg-slate-900/30 backdrop-blur-md border border-slate-800/50 rounded-lg p-4">
+                <div className="bg-slate-900/20 backdrop-blur-md border border-slate-800/50 rounded-lg p-4">
                     <div className="text-sm text-slate-400 mb-1">Invited</div>
                     <div className="text-2xl font-bold text-blue-500">
                         {members.filter(m => m.status === 'invited').length}
@@ -95,7 +95,7 @@ export default function TeamPage() {
             </div>
 
             {/* Members List */}
-            <div className="bg-slate-900/30 backdrop-blur-md border border-slate-800/50 rounded-lg overflow-hidden">
+            <div className="bg-slate-900/20 backdrop-blur-md border border-slate-800/50 rounded-lg overflow-hidden">
                 {isLoading ? (
                     <div className="p-8 text-center text-slate-400">Loading team members...</div>
                 ) : (

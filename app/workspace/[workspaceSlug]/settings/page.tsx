@@ -122,7 +122,7 @@ export default function SettingsPage() {
 
             {/* Settings Form */}
             <div className="max-w-2xl">
-                <div className="bg-slate-900/30 backdrop-blur-md border border-slate-800/50 rounded-lg p-6 space-y-6">
+                <div className="bg-slate-900/20 backdrop-blur-md border border-slate-800/50 rounded-lg p-6 space-y-6">
                     <div>
                         <label className="block text-sm font-medium text-white mb-2">
                             Workspace Name

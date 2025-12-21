@@ -43,14 +43,14 @@ export default function TrafficChart({ workspaceId, timeRange = '24h' }: Traffic
 
     if (isLoading) {
         return (
-            <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-6 h-80 flex items-center justify-center">
+            <div className="bg-slate-900/20 backdrop-blur-md border border-slate-800 rounded-lg p-6 h-80 flex items-center justify-center">
                 <div className="text-slate-400">Loading traffic data...</div>
             </div>
         )
     }
 
     return (
-        <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-6">
+        <div className="bg-slate-900/20 backdrop-blur-md border border-slate-800 rounded-lg p-6">
             <h3 className="text-lg font-semibold text-white mb-4">Traffic Over Time</h3>
             <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={data}>

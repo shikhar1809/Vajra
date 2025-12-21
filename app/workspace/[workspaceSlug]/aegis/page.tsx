@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useWorkspace } from '@/contexts/WorkspaceContext'
 import { getSupabaseClient } from '@/lib/supabase/client'
-import { Search, Plus, Code, Shield, RotateCcw, Database } from 'lucide-react'
+import { Search, Plus, Code, Shield, RotateCcw, Database, FileScan } from 'lucide-react'
 import ProjectScoreCard from '@/components/aegis/ProjectScoreCard'
 import AddProjectForm from '@/components/workspace/aegis/AddProjectForm'
 import ExportButton from '@/components/shared/ExportButton'
@@ -80,13 +80,18 @@ export default function AegisPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-green-950 p-8">
+        <div className="min-h-screen p-8">
             <div className="max-w-7xl mx-auto space-y-8">
                 {/* Header */}
                 <div className="flex items-center justify-between">
-                    <div>
-                        <h1 className="text-4xl font-bold text-white mb-2">🛡️ Aegis</h1>
-                        <p className="text-slate-400">Code Security Scanning</p>
+                    <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center">
+                            <FileScan className="w-7 h-7 text-green-500" />
+                        </div>
+                        <div>
+                            <h1 className="text-4xl font-bold text-white mb-1">Aegis</h1>
+                            <p className="text-slate-400">Code Security Scanning</p>
+                        </div>
                     </div>
                     <div className="flex items-center gap-3">
                         {workspace && <ExportButton module="aegis" workspaceId={workspace.id} />}
@@ -121,19 +126,19 @@ export default function AegisPage() {
 
                 {/* Stats Overview */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-6">
+                    <div className="bg-slate-900/20 backdrop-blur-md border border-slate-800 rounded-lg p-6">
                         <div className="text-sm text-slate-400 mb-1">Total Projects</div>
                         <div className="text-3xl font-bold text-green-400">{stats.total}</div>
                     </div>
-                    <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-6">
+                    <div className="bg-slate-900/20 backdrop-blur-md border border-slate-800 rounded-lg p-6">
                         <div className="text-sm text-slate-400 mb-1">Critical Issues</div>
                         <div className="text-3xl font-bold text-red-400">{stats.critical}</div>
                     </div>
-                    <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-6">
+                    <div className="bg-slate-900/20 backdrop-blur-md border border-slate-800 rounded-lg p-6">
                         <div className="text-sm text-slate-400 mb-1">Secure Projects</div>
                         <div className="text-3xl font-bold text-green-400">{stats.secure}</div>
                     </div>
-                    <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-6">
+                    <div className="bg-slate-900/20 backdrop-blur-md border border-slate-800 rounded-lg p-6">
                         <div className="text-sm text-slate-400 mb-1">Total Vulnerabilities</div>
                         <div className="text-3xl font-bold text-yellow-400">{stats.totalVulns}</div>
                     </div>
@@ -147,7 +152,7 @@ export default function AegisPage() {
                         placeholder="Search projects..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 bg-slate-900/50 border border-slate-800 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-green-500"
+                        className="w-full pl-10 pr-4 py-2 bg-slate-900/20 backdrop-blur-md border border-slate-800 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-green-500"
                     />
                 </div>
 

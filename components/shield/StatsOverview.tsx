@@ -58,7 +58,7 @@ export default function StatsOverview({
                 return (
                     <div
                         key={stat.label}
-                        className="bg-slate-900/50 border border-slate-800 rounded-lg p-6 hover:border-slate-700 transition-colors"
+                        className="bg-slate-900/20 backdrop-blur-md border border-slate-800 rounded-lg p-6 hover:border-slate-700 transition-colors"
                     >
                         <div className="flex items-start justify-between mb-4">
                             <div className={`w-10 h-10 ${stat.bg} rounded-lg flex items-center justify-center`}>

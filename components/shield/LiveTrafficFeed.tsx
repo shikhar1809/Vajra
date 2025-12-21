@@ -26,7 +26,7 @@ export default function LiveTrafficFeed({ workspaceId }: LiveTrafficFeedProps) {
     }
 
     return (
-        <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-6">
+        <div className="bg-slate-900/20 backdrop-blur-md border border-slate-800 rounded-lg p-6">
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
@@ -101,7 +101,7 @@ export default function LiveTrafficFeed({ workspaceId }: LiveTrafficFeedProps) {
                             <div className="text-right">
                                 <div className="text-sm text-slate-400">Bot Score</div>
                                 <div className={`text-lg font-bold ${event.botScore > 70 ? 'text-red-400' :
-                                        event.botScore > 40 ? 'text-yellow-400' : 'text-green-400'
+                                    event.botScore > 40 ? 'text-yellow-400' : 'text-green-400'
                                     }`}>
                                     {event.botScore}
                                 </div>

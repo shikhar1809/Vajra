@@ -96,7 +96,7 @@ export default function WorkspaceLayout({
 
             <div className="min-h-screen text-white flex relative z-10">
                 {/* Sidebar */}
-                <aside className={`${isSidebarOpen ? 'w-64' : 'w-20'} bg-slate-900/30 backdrop-blur-md border-r border-slate-800/50 flex flex-col transition-all duration-300`}>
+                <aside className={`${isSidebarOpen ? 'w-64' : 'w-20'} bg-slate-900/20 backdrop-blur-md border-r border-slate-800/50 flex flex-col transition-all duration-300`}>
                     {/* Workspace Header */}
                     <div className="p-4 border-b border-slate-800/50">
                         {isSidebarOpen ? (

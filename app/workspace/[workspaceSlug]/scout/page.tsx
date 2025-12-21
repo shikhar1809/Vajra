@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useWorkspace } from '@/contexts/WorkspaceContext'
 import { getSupabaseClient } from '@/lib/supabase/client'
-import { Search, Plus, Filter, Download, Database, RotateCcw } from 'lucide-react'
+import { Search, Plus, Filter, Download, Database, RotateCcw, Radar } from 'lucide-react'
 import VendorScoreCard from '@/components/scout/VendorScoreCard'
 import AddVendorForm from '@/components/workspace/scout/AddVendorForm'
 import ExportButton from '@/components/shared/ExportButton'
@@ -78,13 +78,18 @@ export default function ScoutPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 p-8">
+        <div className="min-h-screen p-8">
             <div className="max-w-7xl mx-auto space-y-8">
                 {/* Header */}
                 <div className="flex items-center justify-between">
-                    <div>
-                        <h1 className="text-4xl font-bold text-white mb-2">🔍 Scout</h1>
-                        <p className="text-slate-400">Vendor Security Monitoring</p>
+                    <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                            <Radar className="w-7 h-7 text-blue-500" />
+                        </div>
+                        <div>
+                            <h1 className="text-4xl font-bold text-white mb-1">Scout</h1>
+                            <p className="text-slate-400">Vendor Security Monitoring</p>
+                        </div>
                     </div>
                     <div className="flex items-center gap-3">
                         {workspace && <ExportButton module="scout" workspaceId={workspace.id} />}
@@ -119,19 +124,19 @@ export default function ScoutPage() {
 
                 {/* Stats Overview */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-6">
+                    <div className="bg-slate-900/20 backdrop-blur-md border border-slate-800 rounded-lg p-6">
                         <div className="text-sm text-slate-400 mb-1">Total Vendors</div>
                         <div className="text-3xl font-bold text-blue-400">{stats.total}</div>
                     </div>
-                    <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-6">
+                    <div className="bg-slate-900/20 backdrop-blur-md border border-slate-800 rounded-lg p-6">
                         <div className="text-sm text-slate-400 mb-1">Critical Risk</div>
                         <div className="text-3xl font-bold text-red-400">{stats.critical}</div>
                     </div>
-                    <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-6">
+                    <div className="bg-slate-900/20 backdrop-blur-md border border-slate-800 rounded-lg p-6">
                         <div className="text-sm text-slate-400 mb-1">High Risk</div>
                         <div className="text-3xl font-bold text-orange-400">{stats.high}</div>
                     </div>
-                    <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-6">
+                    <div className="bg-slate-900/20 backdrop-blur-md border border-slate-800 rounded-lg p-6">
                         <div className="text-sm text-slate-400 mb-1">Total Breaches</div>
                         <div className="text-3xl font-bold text-yellow-400">{stats.breaches}</div>
                     </div>
@@ -146,13 +151,13 @@ export default function ScoutPage() {
                             placeholder="Search vendors..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 bg-slate-900/50 border border-slate-800 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                            className="w-full pl-10 pr-4 py-2 bg-slate-900/20 backdrop-blur-md border border-slate-800 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
                         />
                     </div>
                     <select
                         value={filterRisk}
                         onChange={(e) => setFilterRisk(e.target.value)}
-                        className="px-4 py-2 bg-slate-900/50 border border-slate-800 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                        className="px-4 py-2 bg-slate-900/20 backdrop-blur-md border border-slate-800 rounded-lg text-white focus:outline-none focus:border-blue-500"
                     >
                         <option value="all">All Risk Levels</option>
                         <option value="low">Low</option>

@@ -136,18 +136,23 @@ export default createVajraShield({
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-red-950 p-8">
+        <div className="min-h-screen p-8">
             <div className="max-w-7xl mx-auto space-y-8">
                 {/* Header */}
                 <div className="flex items-center justify-between">
-                    <div>
-                        <h1 className="text-4xl font-bold text-white mb-2">🛡️ Shield</h1>
-                        <p className="text-slate-400">Traffic Protection & Bot Detection</p>
+                    <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 bg-red-500/20 rounded-lg flex items-center justify-center">
+                            <ShieldAlert className="w-7 h-7 text-red-500" />
+                        </div>
+                        <div>
+                            <h1 className="text-4xl font-bold text-white mb-1">Shield</h1>
+                            <p className="text-slate-400">Traffic Protection & Bot Detection</p>
+                        </div>
                     </div>
                     {workspace && <ExportButton module="shield" workspaceId={workspace.id} />}
 
                     {/* Time Range Selector */}
-                    <div className="flex items-center gap-2 bg-slate-900/50 border border-slate-800 rounded-lg p-1">
+                    <div className="flex items-center gap-2 bg-slate-900/20 backdrop-blur-md border border-slate-800 rounded-lg p-1">
                         {timeRanges.map((range) => (
                             <button
                                 key={range.value}
@@ -207,7 +212,7 @@ export default createVajraShield({
                 {workspace && <IPReputationList workspaceId={workspace.id} timeRange={timeRange} />}
 
                 {/* Integration Guide */}
-                <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-6">
+                <div className="bg-slate-900/20 backdrop-blur-md border border-slate-800 rounded-lg p-6">
                     <div className="flex items-center gap-3 mb-6">
                         <div className="w-10 h-10 bg-red-500/20 rounded-lg flex items-center justify-center">
                             <Code className="w-5 h-5 text-red-500" />

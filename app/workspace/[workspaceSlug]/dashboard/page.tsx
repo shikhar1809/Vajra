@@ -68,7 +68,7 @@ export default function DashboardPage() {
             {/* Metrics Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                 {/* Security Score */}
-                <div className="bg-slate-900/30 backdrop-blur-md border border-slate-800/50 rounded-lg p-6 col-span-1 md:col-span-2 lg:col-span-1">
+                <div className="bg-slate-900/20 backdrop-blur-md border border-slate-800/50 rounded-lg p-6 col-span-1 md:col-span-2 lg:col-span-1">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-semibold text-white">Security Score</h3>
                         <span className={`text-sm font-medium ${scoreColor}`}>{scoreLabel}</span>
@@ -110,7 +110,7 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Active Threats */}
-                <Link href={`/workspace/${workspaceSlug}/shield`} className="bg-slate-900/30 backdrop-blur-md border border-slate-800/50 rounded-lg p-6 hover:border-red-500 transition-colors">
+                <Link href={`/workspace/${workspaceSlug}/shield`} className="bg-slate-900/20 backdrop-blur-md border border-slate-800/50 rounded-lg p-6 hover:border-red-500 transition-colors">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-semibold text-white">Active Threats</h3>
                         <ShieldAlert className="w-8 h-8 text-red-500" />
@@ -122,7 +122,7 @@ export default function DashboardPage() {
                 </Link>
 
                 {/* Document Scans */}
-                <Link href={`/workspace/${workspaceSlug}/aegis`} className="bg-slate-900/30 backdrop-blur-md border border-slate-800/50 rounded-lg p-6 hover:border-blue-500 transition-colors">
+                <Link href={`/workspace/${workspaceSlug}/aegis`} className="bg-slate-900/20 backdrop-blur-md border border-slate-800/50 rounded-lg p-6 hover:border-blue-500 transition-colors">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-semibold text-white">Scans Today</h3>
                         <FileScan className="w-8 h-8 text-blue-500" />
@@ -138,7 +138,7 @@ export default function DashboardPage() {
                 </Link>
 
                 {/* Suspicious Transactions */}
-                <Link href={`/workspace/${workspaceSlug}/scout`} className="bg-slate-900/30 backdrop-blur-md border border-slate-800/50 rounded-lg p-6 hover:border-yellow-500 transition-colors">
+                <Link href={`/workspace/${workspaceSlug}/scout`} className="bg-slate-900/20 backdrop-blur-md border border-slate-800/50 rounded-lg p-6 hover:border-yellow-500 transition-colors">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-semibold text-white">Suspicious Transactions</h3>
                         <Radar className="w-8 h-8 text-yellow-500" />
@@ -152,7 +152,7 @@ export default function DashboardPage() {
                 </Link>
 
                 {/* Deepfakes Detected */}
-                <Link href={`/workspace/${workspaceSlug}/sentry`} className="bg-slate-900/30 backdrop-blur-md border border-slate-800/50 rounded-lg p-6 hover:border-purple-500 transition-colors">
+                <Link href={`/workspace/${workspaceSlug}/sentry`} className="bg-slate-900/20 backdrop-blur-md border border-slate-800/50 rounded-lg p-6 hover:border-purple-500 transition-colors">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-semibold text-white">Deepfakes Detected</h3>
                         <ScanFace className="w-8 h-8 text-purple-500" />
@@ -168,7 +168,7 @@ export default function DashboardPage() {
                 </Link>
 
                 {/* Team Members */}
-                <Link href={`/workspace/${workspaceSlug}/team`} className="bg-slate-900/30 backdrop-blur-md border border-slate-800/50 rounded-lg p-6 hover:border-green-500 transition-colors">
+                <Link href={`/workspace/${workspaceSlug}/team`} className="bg-slate-900/20 backdrop-blur-md border border-slate-800/50 rounded-lg p-6 hover:border-green-500 transition-colors">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-semibold text-white">Team Members</h3>
                         <Users className="w-8 h-8 text-green-500" />

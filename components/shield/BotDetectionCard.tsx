@@ -61,14 +61,14 @@ export default function BotDetectionCard({ workspaceId, timeRange = '24h' }: Bot
 
     if (isLoading) {
         return (
-            <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-6">
+            <div className="bg-slate-900/20 backdrop-blur-md border border-slate-800 rounded-lg p-6">
                 <div className="text-slate-400">Loading bot statistics...</div>
             </div>
         )
     }
 
     return (
-        <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-6">
+        <div className="bg-slate-900/20 backdrop-blur-md border border-slate-800 rounded-lg p-6">
             <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 bg-red-500/20 rounded-lg flex items-center justify-center">
                     <Bot className="w-5 h-5 text-red-500" />
