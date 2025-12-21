@@ -6,15 +6,28 @@ import { Line, LineChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 interface TrafficChartProps {
     workspaceId: string
     timeRange?: '1h' | '24h' | '7d' | '30d'
+    demoData?: any[]
 }
 
-export default function TrafficChart({ workspaceId, timeRange = '24h' }: TrafficChartProps) {
+export default function TrafficChart({ workspaceId, timeRange = '24h', demoData }: TrafficChartProps) {
     const [data, setData] = useState<any[]>([])
     const [isLoading, setIsLoading] = useState(true)
 
     useEffect(() => {
-        loadData()
-    }, [workspaceId, timeRange])
+        if (demoData) {
+            // Use demo data if provided
+            const chartData = demoData.map((item: any) => ({
+                time: item.time,
+                Total: item.allowed + item.blocked,
+                Blocked: item.blocked,
+                Bots: Math.floor((item.allowed + item.blocked) * 0.15), // Simulate 15% bot traffic
+            }))
+            setData(chartData)
+            setIsLoading(false)
+        } else {
+            loadData()
+        }
+    }, [workspaceId, timeRange, demoData])
 
     async function loadData() {
         try {

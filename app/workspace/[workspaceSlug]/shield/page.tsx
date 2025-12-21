@@ -100,7 +100,15 @@ export default function ShieldPage() {
                     time: `${i}:00`,
                     allowed: Math.floor(Math.random() * 5000 + 4000),
                     blocked: Math.floor(Math.random() * 1000 + 500)
-                }))
+                })),
+                geoData: [
+                    { country: 'US', count: 45000, percentage: 36 },
+                    { country: 'IN', count: 28000, percentage: 22 },
+                    { country: 'GB', count: 18000, percentage: 14 },
+                    { country: 'DE', count: 15000, percentage: 12 },
+                    { country: 'CN', count: 12000, percentage: 10 },
+                    { country: 'FR', count: 6500, percentage: 5 }
+                ]
             })
         } else {
             setIsDemoMode(false)
@@ -197,7 +205,7 @@ export default createVajraShield({
                 )}
 
                 {/* Traffic Chart */}
-                {workspace && <TrafficChart workspaceId={workspace.id} timeRange={timeRange} />}
+                {workspace && <TrafficChart workspaceId={workspace.id} timeRange={timeRange} demoData={isDemoMode ? analytics?.requestsHistory : undefined} />}
 
                 {/* Live Traffic Feed */}
                 {workspace && <LiveTrafficFeed workspaceId={workspace.id} />}
@@ -205,7 +213,7 @@ export default createVajraShield({
                 {/* Bot Detection & Geographic Distribution */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {workspace && <BotDetectionCard workspaceId={workspace.id} timeRange={timeRange} />}
-                    {workspace && <GeographicMap workspaceId={workspace.id} timeRange={timeRange} />}
+                    {workspace && <GeographicMap workspaceId={workspace.id} timeRange={timeRange} demoData={isDemoMode ? analytics?.geoData : undefined} />}
                 </div>
 
                 {/* Blocked IPs */}

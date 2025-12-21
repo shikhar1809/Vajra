@@ -6,6 +6,7 @@ import { Globe, MapPin } from 'lucide-react'
 interface GeographicMapProps {
     workspaceId: string
     timeRange?: '1h' | '24h' | '7d' | '30d'
+    demoData?: any[]
 }
 
 interface CountryData {
@@ -14,13 +15,19 @@ interface CountryData {
     percentage: number
 }
 
-export default function GeographicMap({ workspaceId, timeRange = '24h' }: GeographicMapProps) {
+export default function GeographicMap({ workspaceId, timeRange = '24h', demoData }: GeographicMapProps) {
     const [countries, setCountries] = useState<CountryData[]>([])
     const [isLoading, setIsLoading] = useState(true)
 
     useEffect(() => {
-        loadGeographicData()
-    }, [workspaceId, timeRange])
+        if (demoData) {
+            // Use demo data if provided
+            setCountries(demoData)
+            setIsLoading(false)
+        } else {
+            loadGeographicData()
+        }
+    }, [workspaceId, timeRange, demoData])
 
     async function loadGeographicData() {
         try {
