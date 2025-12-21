@@ -11,6 +11,8 @@ import IPReputationList from '@/components/shield/IPReputationList'
 import GeographicMap from '@/components/shield/GeographicMap'
 import LiveTrafficFeed from '@/components/shield/LiveTrafficFeed'
 import ExportButton from '@/components/shared/ExportButton'
+import { useDemoLock } from '@/lib/demo-lock-manager'
+import DemoLockTooltip from '@/components/DemoLockTooltip'
 
 export default function ShieldPage() {
     const { workspace } = useWorkspace()
@@ -21,6 +23,7 @@ export default function ShieldPage() {
     const [copied, setCopied] = useState(false)
     const [timeRange, setTimeRange] = useState<'1h' | '24h' | '7d' | '30d'>('24h')
     const [isDemoMode, setIsDemoMode] = useState(false)
+    const demoLock = useDemoLock(workspace?.id)
 
     useEffect(() => {
         if (workspace) {
@@ -89,6 +92,8 @@ export default function ShieldPage() {
     }
 
     const toggleDemoMode = () => {
+        if (demoLock.isLocked) return
+
         if (!isDemoMode) {
             setIsDemoMode(true)
             setAnalytics({
@@ -115,6 +120,48 @@ export default function ShieldPage() {
             loadAnalytics()
         }
     }
+
+    // Live demo data updates
+    useEffect(() => {
+        if (!isDemoMode) return
+
+        const interval = setInterval(() => {
+            setAnalytics((prev: any) => {
+                if (!prev) return prev
+
+                // Update stats with small random changes
+                const newTotalRequests = prev.totalRequests + Math.floor(Math.random() * 100 + 50)
+                const newBlockedRequests = prev.blockedRequests + Math.floor(Math.random() * 10 + 5)
+                const newBotRequests = prev.botRequests + Math.floor(Math.random() * 15 + 5)
+
+                // Add new traffic data point
+                const now = new Date()
+                const newTrafficPoint = {
+                    time: now.toLocaleTimeString(),
+                    allowed: Math.floor(Math.random() * 5000 + 4000),
+                    blocked: Math.floor(Math.random() * 1000 + 500)
+                }
+
+                // Rotate geographic data (simulate traffic shifts)
+                const newGeoData = prev.geoData.map((country: any) => ({
+                    ...country,
+                    count: country.count + Math.floor(Math.random() * 500 - 200),
+                    percentage: Math.max(1, Math.min(50, country.percentage + Math.floor(Math.random() * 3 - 1)))
+                }))
+
+                return {
+                    totalRequests: newTotalRequests,
+                    blockedRequests: newBlockedRequests,
+                    botRequests: newBotRequests,
+                    uniqueIPs: prev.uniqueIPs + Math.floor(Math.random() * 10),
+                    requestsHistory: [...prev.requestsHistory.slice(1), newTrafficPoint],
+                    geoData: newGeoData
+                }
+            })
+        }, 3000) // Update every 3 seconds
+
+        return () => clearInterval(interval)
+    }, [isDemoMode])
 
     const copyToClipboard = (text: string) => {
         navigator.clipboard.writeText(text)
@@ -174,25 +221,34 @@ export default createVajraShield({
                             </button>
                         ))}
                     </div>
-                    <button
-                        onClick={toggleDemoMode}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-colors ${isDemoMode
-                            ? 'bg-amber-500 hover:bg-amber-600 text-black'
-                            : 'bg-white/10 hover:bg-white/20 text-white'
-                            }`}
+                    <DemoLockTooltip
+                        isLocked={demoLock.isLocked}
+                        reason={demoLock.reason}
+                        modulesWithData={demoLock.modulesWithData}
                     >
-                        {isDemoMode ? (
-                            <>
-                                <RotateCcw className="w-4 h-4" />
-                                Reset
-                            </>
-                        ) : (
-                            <>
-                                <Zap className="w-4 h-4 text-yellow-500" />
-                                Simulate Attack
-                            </>
-                        )}
-                    </button>
+                        <button
+                            onClick={toggleDemoMode}
+                            disabled={demoLock.isLocked}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-colors ${demoLock.isLocked
+                                    ? 'bg-slate-800/50 text-slate-500 cursor-not-allowed opacity-50'
+                                    : isDemoMode
+                                        ? 'bg-amber-500 hover:bg-amber-600 text-black'
+                                        : 'bg-white/10 hover:bg-white/20 text-white'
+                                }`}
+                        >
+                            {isDemoMode ? (
+                                <>
+                                    <RotateCcw className="w-4 h-4" />
+                                    Reset
+                                </>
+                            ) : (
+                                <>
+                                    <Zap className="w-4 h-4 text-yellow-500" />
+                                    Simulate Attack
+                                </>
+                            )}
+                        </button>
+                    </DemoLockTooltip>
                 </div>
                 {/* Stats Overview */}
                 {analytics && (

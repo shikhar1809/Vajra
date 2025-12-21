@@ -8,6 +8,8 @@ import type { ActivityLog } from '@/types/modules'
 import { motion, AnimatePresence } from 'framer-motion'
 import { CheckCircle, AlertTriangle, Info, FileText, Shield, DollarSign, Eye, Users, RotateCcw, Database } from 'lucide-react'
 import { useWorkspace } from '@/contexts/WorkspaceContext'
+import { useDemoLock } from '@/lib/demo-lock-manager'
+import DemoLockTooltip from '@/components/DemoLockTooltip'
 
 export default function ActivityPage() {
     const params = useParams()
@@ -16,6 +18,7 @@ export default function ActivityPage() {
     const [logs, setLogs] = useState<ActivityLog[]>([])
     const [isLoading, setIsLoading] = useState(true)
     const [isDemoMode, setIsDemoMode] = useState(false)
+    const demoLock = useDemoLock(workspace?.id)
     const workspaceSlug = params?.workspaceSlug as string
 
     useEffect(() => {
@@ -90,6 +93,8 @@ export default function ActivityPage() {
     }
 
     const toggleDemoMode = () => {
+        if (demoLock.isLocked) return
+
         if (!isDemoMode) {
             setIsDemoMode(true)
             setLogs(generateDemoLogs())
@@ -99,6 +104,49 @@ export default function ActivityPage() {
             loadLogs()
         }
     }
+
+    // Live demo data updates
+    useEffect(() => {
+        if (!isDemoMode) return
+
+        const interval = setInterval(() => {
+            const actions = ['created', 'updated', 'deleted', 'scanned', 'detected']
+            const resourceTypes = ['threat', 'document', 'transaction', 'detection', 'member']
+            const descriptions = [
+                'Suspicious login attempt blocked from IP 192.168.1.100',
+                'New vendor added: SecureCloud Inc.',
+                'Code scan completed for project: Frontend App',
+                'Employee completed security training module',
+                'Phishing email detected and quarantined',
+                'High-risk transaction flagged: $15,000 wire transfer',
+                'API key rotated for Shield module',
+                'New team member invited: john@company.com',
+                'Vulnerability found: SQL Injection in auth service',
+                'Bot traffic detected from China (12% increase)',
+                'Document scanned: financial_report_Q4.pdf',
+                'Security policy updated: Password requirements',
+                'Failed login attempts: 5 from same IP',
+                'Deepfake detection scan initiated',
+                'Vendor risk score updated: Legacy Systems Ltd. (Critical)',
+            ]
+
+            const newLog: ActivityLog = {
+                id: `demo-live-${Date.now()}`,
+                workspace_id: workspace?.id || '',
+                user_id: Math.random() > 0.5 ? 'user-123' : 'system',
+                action: actions[Math.floor(Math.random() * actions.length)],
+                resource_type: resourceTypes[Math.floor(Math.random() * resourceTypes.length)],
+                resource_id: `resource-${Date.now()}`,
+                description: descriptions[Math.floor(Math.random() * descriptions.length)],
+                metadata: {},
+                created_at: new Date().toISOString(),
+            }
+
+            setLogs(prev => [newLog, ...prev].slice(0, 50))
+        }, 3000) // New log every 3 seconds
+
+        return () => clearInterval(interval)
+    }, [isDemoMode, workspace?.id])
 
     const getActionIcon = (resourceType: string) => {
         switch (resourceType) {
@@ -149,28 +197,37 @@ export default function ActivityPage() {
                         Real-time workspace activity and system events
                     </motion.p>
                 </div>
-                <motion.button
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.6, duration: 0.5 }}
-                    onClick={toggleDemoMode}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-colors mt-4 md:mt-0 ${isDemoMode
-                        ? 'bg-amber-500 hover:bg-amber-600 text-black'
-                        : 'bg-white/10 hover:bg-white/20 text-white'
-                        }`}
+                <DemoLockTooltip
+                    isLocked={demoLock.isLocked}
+                    reason={demoLock.reason}
+                    modulesWithData={demoLock.modulesWithData}
                 >
-                    {isDemoMode ? (
-                        <>
-                            <RotateCcw className="w-5 h-5" />
-                            Clear Demo
-                        </>
-                    ) : (
-                        <>
-                            <Database className="w-5 h-5 text-blue-400" />
-                            Load Demo
-                        </>
-                    )}
-                </motion.button>
+                    <motion.button
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.6, duration: 0.5 }}
+                        onClick={toggleDemoMode}
+                        disabled={demoLock.isLocked}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-colors mt-4 md:mt-0 ${demoLock.isLocked
+                                ? 'bg-slate-800/50 text-slate-500 cursor-not-allowed opacity-50'
+                                : isDemoMode
+                                    ? 'bg-amber-500 hover:bg-amber-600 text-black'
+                                    : 'bg-white/10 hover:bg-white/20 text-white'
+                            }`}
+                    >
+                        {isDemoMode ? (
+                            <>
+                                <RotateCcw className="w-5 h-5" />
+                                Clear Demo
+                            </>
+                        ) : (
+                            <>
+                                <Database className="w-5 h-5 text-blue-400" />
+                                Load Demo
+                            </>
+                        )}
+                    </motion.button>
+                </DemoLockTooltip>
             </div>
 
             {/* Activity Stream Container */}
