@@ -6,7 +6,7 @@ import { getSupabaseClient } from '@/lib/supabase/client'
 import { getActivityLogs } from '@/lib/activity-logger'
 import type { ActivityLog } from '@/types/modules'
 import { motion, AnimatePresence } from 'framer-motion'
-import { CheckCircle, AlertTriangle, Info, FileText, Shield, DollarSign, Eye, Users } from 'lucide-react'
+import { CheckCircle, AlertTriangle, Info, FileText, Shield, DollarSign, Eye, Users, RotateCcw, Database } from 'lucide-react'
 import { useWorkspace } from '@/contexts/WorkspaceContext'
 
 export default function ActivityPage() {
@@ -15,6 +15,7 @@ export default function ActivityPage() {
     const { workspace } = useWorkspace()
     const [logs, setLogs] = useState<ActivityLog[]>([])
     const [isLoading, setIsLoading] = useState(true)
+    const [isDemoMode, setIsDemoMode] = useState(false)
     const workspaceSlug = params?.workspaceSlug as string
 
     useEffect(() => {
@@ -38,6 +39,8 @@ export default function ActivityPage() {
     }, [workspaceSlug])
 
     async function loadLogs() {
+        if (isDemoMode) return
+
         try {
             if (!workspace) return
 
@@ -47,6 +50,53 @@ export default function ActivityPage() {
             console.error('Error loading activity logs:', error)
         } finally {
             setIsLoading(false)
+        }
+    }
+
+    const generateDemoLogs = () => {
+        const actions = ['created', 'updated', 'deleted', 'scanned', 'detected']
+        const resourceTypes = ['threat', 'document', 'transaction', 'detection', 'member']
+        const descriptions = [
+            'Suspicious login attempt blocked from IP 192.168.1.100',
+            'New vendor added: SecureCloud Inc.',
+            'Code scan completed for project: Frontend App',
+            'Employee completed security training module',
+            'Phishing email detected and quarantined',
+            'High-risk transaction flagged: $15,000 wire transfer',
+            'API key rotated for Shield module',
+            'New team member invited: john@company.com',
+            'Vulnerability found: SQL Injection in auth service',
+            'Bot traffic detected from China (12% increase)',
+            'Document scanned: financial_report_Q4.pdf',
+            'Security policy updated: Password requirements',
+            'Failed login attempts: 5 from same IP',
+            'Deepfake detection scan initiated',
+            'Vendor risk score updated: Legacy Systems Ltd. (Critical)',
+        ]
+
+        const demoLogs: ActivityLog[] = Array.from({ length: 20 }, (_, i) => ({
+            id: `demo-${i}`,
+            workspace_id: workspace?.id || '',
+            user_id: Math.random() > 0.5 ? 'user-123' : 'system',
+            action: actions[Math.floor(Math.random() * actions.length)],
+            resource_type: resourceTypes[Math.floor(Math.random() * resourceTypes.length)],
+            resource_id: `resource-${i}`,
+            description: descriptions[Math.floor(Math.random() * descriptions.length)],
+            metadata: {},
+            created_at: new Date(Date.now() - i * 60000 * Math.random() * 10).toISOString(),
+        }))
+
+        return demoLogs.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    }
+
+    const toggleDemoMode = () => {
+        if (!isDemoMode) {
+            setIsDemoMode(true)
+            setLogs(generateDemoLogs())
+            setIsLoading(false)
+        } else {
+            setIsDemoMode(false)
+            loadLogs()
         }
     }
 
@@ -80,23 +130,47 @@ export default function ActivityPage() {
 
     return (
         <div className="relative w-full min-h-screen flex flex-col p-8">
-            <div className="relative z-10 flex flex-col mb-8">
-                <motion.h1
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2, duration: 0.8, ease: "easeInOut" }}
-                    className="text-5xl md:text-6xl font-bold tracking-tighter mb-4 text-white"
+            <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+                <div>
+                    <motion.h1
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2, duration: 0.8, ease: "easeInOut" }}
+                        className="text-5xl md:text-6xl font-bold tracking-tighter mb-4 text-white"
+                    >
+                        Live Activity Feed
+                    </motion.h1>
+                    <motion.p
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.4, duration: 0.8, ease: "easeInOut" }}
+                        className="text-lg text-slate-400"
+                    >
+                        Real-time workspace activity and system events
+                    </motion.p>
+                </div>
+                <motion.button
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.6, duration: 0.5 }}
+                    onClick={toggleDemoMode}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-colors mt-4 md:mt-0 ${isDemoMode
+                        ? 'bg-amber-500 hover:bg-amber-600 text-black'
+                        : 'bg-white/10 hover:bg-white/20 text-white'
+                        }`}
                 >
-                    Live Activity Feed
-                </motion.h1>
-                <motion.p
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4, duration: 0.8, ease: "easeInOut" }}
-                    className="text-lg text-slate-400"
-                >
-                    Real-time workspace activity and system events
-                </motion.p>
+                    {isDemoMode ? (
+                        <>
+                            <RotateCcw className="w-5 h-5" />
+                            Clear Demo
+                        </>
+                    ) : (
+                        <>
+                            <Database className="w-5 h-5 text-blue-400" />
+                            Load Demo
+                        </>
+                    )}
+                </motion.button>
             </div>
 
             {/* Activity Stream Container */}
