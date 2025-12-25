@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+redis
+psycopg2-binary
+requests
+strsimpy
+dnspython
+confusable_homoglyphs
+# semgrep and trufflehog are binaries, we might install their pip wrappers or just use binary
+# semgrep
+# trufflehog
