@@ -92,7 +92,7 @@ export default function SentryPage() {
                         </div>
                         <div>
                             <h1 className="text-4xl font-bold text-white mb-1">Sentry</h1>
-                            <p className="text-slate-400">Employee Security Training</p>
+                            <p className="text-slate-400">Employee Security Compliance Check</p>
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
