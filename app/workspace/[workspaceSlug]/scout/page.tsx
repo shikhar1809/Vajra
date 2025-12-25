@@ -3,10 +3,12 @@
 import { useEffect, useState } from 'react'
 import { useWorkspace } from '@/contexts/WorkspaceContext'
 import { getSupabaseClient } from '@/lib/supabase/client'
-import { Search, Plus, Filter, Download, Database, RotateCcw, Radar } from 'lucide-react'
+import { Search, Plus, Filter, Download, Database, RotateCcw, Radar, FileText } from 'lucide-react'
 import VendorScoreCard from '@/components/scout/VendorScoreCard'
 import AddVendorForm from '@/components/workspace/scout/AddVendorForm'
+import UploadBillForm from '@/components/workspace/scout/UploadBillForm'
 import ExportButton from '@/components/shared/ExportButton'
+import DomainScanner from '@/components/scout/DomainScanner'
 
 export default function ScoutPage() {
     const { workspace } = useWorkspace()
@@ -14,6 +16,7 @@ export default function ScoutPage() {
     const [vendors, setVendors] = useState<any[]>([])
     const [isLoading, setIsLoading] = useState(true)
     const [showAddForm, setShowAddForm] = useState(false)
+    const [showAnalyzeModal, setShowAnalyzeModal] = useState(false) // New state
     const [searchQuery, setSearchQuery] = useState('')
     const [filterRisk, setFilterRisk] = useState<string>('all')
     const [isDemoMode, setIsDemoMode] = useState(false)
@@ -26,7 +29,6 @@ export default function ScoutPage() {
 
     async function loadVendors() {
         if (!workspace || isDemoMode) return
-
         try {
             setIsLoading(true)
             const { data, error } = await supabase
@@ -34,7 +36,6 @@ export default function ScoutPage() {
                 .select('*')
                 .eq('workspace_id', workspace.id)
                 .order('security_score', { ascending: false })
-
             if (error) throw error
             setVendors(data || [])
         } catch (error) {
@@ -93,6 +94,16 @@ export default function ScoutPage() {
                     </div>
                     <div className="flex items-center gap-3">
                         {workspace && <ExportButton module="scout" workspaceId={workspace.id} />}
+
+                        {/* New Analyze Button */}
+                        <button
+                            onClick={() => setShowAnalyzeModal(true)}
+                            className="flex items-center gap-2 px-4 py-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-500/50 rounded-lg font-semibold transition-colors"
+                        >
+                            <FileText className="w-5 h-5" />
+                            Analyze Invoice
+                        </button>
+
                         <button
                             onClick={toggleDemoMode}
                             className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-colors ${isDemoMode
@@ -121,6 +132,9 @@ export default function ScoutPage() {
                         </button>
                     </div>
                 </div>
+
+                {/* Domain Scanner */}
+                <DomainScanner />
 
                 {/* Stats Overview */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -215,6 +229,21 @@ export default function ScoutPage() {
                                     loadVendors()
                                 }}
                             />
+                        </div>
+                    </div>
+                )}
+
+                {/* Analyze Invoice Modal */}
+                {showAnalyzeModal && (
+                    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+                        <div className="bg-slate-900 border border-slate-700 rounded-lg p-6 max-w-3xl w-full max-h-[90vh] overflow-y-auto relative">
+                            <button
+                                onClick={() => setShowAnalyzeModal(false)}
+                                className="absolute top-4 right-4 text-slate-400 hover:text-white"
+                            >
+                                ✕
+                            </button>
+                            <UploadBillForm />
                         </div>
                     </div>
                 )}

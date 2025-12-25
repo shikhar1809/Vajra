@@ -8,6 +8,7 @@ import EmployeeScoreCard from '@/components/sentry/EmployeeScoreCard'
 import SecurityLeaderboard from '@/components/sentry/SecurityLeaderboard'
 import AddEmployeeForm from '@/components/workspace/sentry/AddEmployeeForm'
 import ExportButton from '@/components/shared/ExportButton'
+import PhishingScanner from '@/components/sentry/PhishingScanner'
 
 export default function SentryPage() {
     const { workspace } = useWorkspace()
@@ -92,7 +93,7 @@ export default function SentryPage() {
                         </div>
                         <div>
                             <h1 className="text-4xl font-bold text-white mb-1">Sentry</h1>
-                            <p className="text-slate-400">Employee Security Compliance Check</p>
+                            <p className="text-slate-400">Employee Security & Phishing Defense</p>
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
@@ -125,6 +126,9 @@ export default function SentryPage() {
                         </button>
                     </div>
                 </div>
+
+                {/* Phishing Scanner Section */}
+                <PhishingScanner />
 
                 {/* Stats Overview */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

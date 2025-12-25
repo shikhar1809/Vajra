@@ -92,3 +92,47 @@ export async function GET(request: Request) {
         );
     }
 }
+
+// PATCH - Update project details (e.g. security score)
+export async function PATCH(request: Request) {
+    try {
+        const body = await request.json();
+        const { projectId, securityScore, summary } = body;
+
+        if (!projectId) {
+            return NextResponse.json(
+                { success: false, error: 'Project ID is required' },
+                { status: 400 }
+            );
+        }
+
+        const { data: project, error } = await supabase
+            .from('projects')
+            .update({
+                security_score: securityScore,
+                last_scan_at: new Date().toISOString(),
+            })
+            .eq('id', projectId)
+            .select()
+            .single();
+
+        if (error) {
+            console.error('Error updating project:', error);
+            return NextResponse.json(
+                { success: false, error: error.message },
+                { status: 500 }
+            );
+        }
+
+        return NextResponse.json({
+            success: true,
+            data: project,
+        });
+    } catch (error) {
+        console.error('Project update error:', error);
+        return NextResponse.json(
+            { success: false, error: 'Failed to update project' },
+            { status: 500 }
+        );
+    }
+}

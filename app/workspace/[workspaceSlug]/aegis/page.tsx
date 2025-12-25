@@ -3,10 +3,12 @@
 import { useEffect, useState } from 'react'
 import { useWorkspace } from '@/contexts/WorkspaceContext'
 import { getSupabaseClient } from '@/lib/supabase/client'
-import { Search, Plus, Code, Shield, RotateCcw, Database, FileScan } from 'lucide-react'
+import { Search, Plus, Code, Shield, RotateCcw, Database, FileScan, Terminal } from 'lucide-react'
 import ProjectScoreCard from '@/components/aegis/ProjectScoreCard'
 import AddProjectForm from '@/components/workspace/aegis/AddProjectForm'
 import ExportButton from '@/components/shared/ExportButton'
+import CodeScanner from '@/components/aegis/CodeScanner'
+import IntegrationGuide from '@/components/shared/IntegrationGuide'
 
 export default function AegisPage() {
     const { workspace } = useWorkspace()
@@ -16,6 +18,7 @@ export default function AegisPage() {
     const [showAddForm, setShowAddForm] = useState(false)
     const [searchQuery, setSearchQuery] = useState('')
     const [isDemoMode, setIsDemoMode] = useState(false)
+    const [showIntegration, setShowIntegration] = useState(false)
 
     useEffect(() => {
         if (workspace) {
@@ -96,6 +99,13 @@ export default function AegisPage() {
                     <div className="flex items-center gap-3">
                         {workspace && <ExportButton module="aegis" workspaceId={workspace.id} />}
                         <button
+                            onClick={() => setShowIntegration(true)}
+                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-colors shadow-lg shadow-blue-500/20"
+                        >
+                            <Terminal className="w-4 h-4" />
+                            Connect Project
+                        </button>
+                        <button
                             onClick={toggleDemoMode}
                             className={`flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-colors ${isDemoMode
                                 ? 'bg-amber-500 hover:bg-amber-600 text-black'
@@ -123,6 +133,18 @@ export default function AegisPage() {
                         </button>
                     </div>
                 </div>
+
+                {workspace && (
+                    <IntegrationGuide
+                        isOpen={showIntegration}
+                        onClose={() => setShowIntegration(false)}
+                        module="aegis"
+                        workspaceId={workspace.id}
+                    />
+                )}
+
+                {/* Code Scanner */}
+                <CodeScanner />
 
                 {/* Stats Overview */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

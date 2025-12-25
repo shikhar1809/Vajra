@@ -23,7 +23,8 @@ export default function AddProjectForm({ workspaceId, onProjectAdded }: AddProje
         setLoading(true);
 
         try {
-            const response = await fetch('/api/workspace/projects', {
+            // 1. Create Project
+            const createResponse = await fetch('/api/workspace/projects', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -32,19 +33,55 @@ export default function AddProjectForm({ workspaceId, onProjectAdded }: AddProje
                 }),
             });
 
-            const data = await response.json();
+            const createData = await createResponse.json();
 
-            if (data.success) {
-                setFormData({
-                    name: "",
-                    repositoryUrl: "",
-                    description: "",
-                });
-                setIsOpen(false);
-                onProjectAdded?.();
+            if (!createData.success) {
+                throw new Error(createData.error || 'Failed to create project');
             }
+
+            const projectId = createData.data.id;
+
+            // 2. Trigger Scan (Real)
+            console.log('Project created, triggering scan...');
+            const scanResponse = await fetch('/api/aegis/scan', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    repositoryUrl: formData.repositoryUrl,
+                    scanType: 'full',
+                    aiEnhanced: true
+                }),
+            });
+
+            const scanData = await scanResponse.json();
+
+            if (scanData.success && scanData.result) {
+                console.log('Scan complete, updating score...', scanData.result.securityScore);
+
+                // 3. Update Project Score
+                await fetch('/api/workspace/projects', {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        projectId,
+                        securityScore: scanData.result.securityScore,
+                        summary: scanData.result.summary
+                    }),
+                });
+            }
+
+            // Success flow
+            setFormData({
+                name: "",
+                repositoryUrl: "",
+                description: "",
+            });
+            setIsOpen(false);
+            onProjectAdded?.();
+
         } catch (error) {
             console.error('Failed to add project:', error);
+            // We could show an error toast here
         } finally {
             setLoading(false);
         }
