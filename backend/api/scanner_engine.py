@@ -18,22 +18,30 @@ else:
 def run_cloud_scan(repo_url: str, access_token: str = None) -> Dict[str, Any]:
     """
     Clones a remote GitHub repo and aggregates context for AI analysis.
-    Returns: {"tree": str, "content": str, "cleanup_status": bool}
+    Returns: {"success": bool, "tree": str, "content": str, "temp_path": str, "error": str}
+    
+    IMPORTANT: Caller is responsible for cleanup of temp_path!
     """
     temp_dir = tempfile.mkdtemp(prefix="vajra_scan_")
     print(f"☁️ VAJRA Cloud: Cloning {repo_url} to {temp_dir}...")
     
     try:
-        # 1. Clone
+        # 1. Clone with authentication if provided
         auth_url = repo_url
         if access_token and "github.com" in repo_url:
             # Inject token: https://TOKEN@github.com/org/repo
             auth_url = repo_url.replace("https://", f"https://{access_token}@")
-            
-        subprocess.run(
+        
+        # Run git clone with timeout
+        result = subprocess.run(
             ["git", "clone", "--depth", "1", auth_url, temp_dir],
-            check=True, timeout=120, capture_output=True
+            check=True, 
+            timeout=120, 
+            capture_output=True,
+            text=True
         )
+        
+        print(f"✅ Repository cloned successfully")
         
         # 2. Gather Context
         file_tree = _get_file_tree(temp_dir)
@@ -43,21 +51,40 @@ def run_cloud_scan(repo_url: str, access_token: str = None) -> Dict[str, Any]:
             "success": True,
             "tree": file_tree,
             "content": content_block,
-            "temp_path": temp_dir # Return path if we want semgrep to scan it too
+            "temp_path": temp_dir  # Caller must cleanup!
         }
 
+    except subprocess.TimeoutExpired:
+        print(f"❌ Clone timeout: Repository took too long to clone")
+        _cleanup_temp_dir(temp_dir)
+        return {"success": False, "error": "Repository clone timeout (>120s)"}
+    
+    except subprocess.CalledProcessError as e:
+        error_msg = e.stderr if e.stderr else str(e)
+        print(f"❌ Git clone failed: {error_msg}")
+        _cleanup_temp_dir(temp_dir)
+        
+        # Provide specific error messages
+        if "Repository not found" in error_msg or "not found" in error_msg.lower():
+            return {"success": False, "error": "Repository not found. Check the URL or access permissions."}
+        elif "Authentication failed" in error_msg or "authentication" in error_msg.lower():
+            return {"success": False, "error": "Authentication failed. Repository may be private."}
+        else:
+            return {"success": False, "error": f"Git clone failed: {error_msg[:200]}"}
+    
     except Exception as e:
-        print(f"❌ Cloud Scan Failed: {e}")
-        return {"success": False, "error": str(e)}
-    finally:
-        # Cleanup (Optimistic)
-        # In real scan, we might wait until Analysis is done, 
-        # but for this function we return the text data so we can kill the dir.
-        try:
+        print(f"❌ Unexpected error during clone: {e}")
+        _cleanup_temp_dir(temp_dir)
+        return {"success": False, "error": f"Unexpected error: {str(e)[:200]}"}
+
+def _cleanup_temp_dir(temp_dir: str):
+    """Helper to cleanup temp directory"""
+    try:
+        if os.path.exists(temp_dir):
             shutil.rmtree(temp_dir)
             print(f"🧹 Cleanup: Removed {temp_dir}")
-        except Exception as  cleanup_err:
-            print(f"⚠️ Cleanup failed: {cleanup_err}")
+    except Exception as cleanup_err:
+        print(f"⚠️ Cleanup failed: {cleanup_err}")
 
 def _get_file_tree(startpath):
     tree_str = ""

@@ -16,10 +16,14 @@ from api.ai_orchestrator import GeminiOrchestrator, AuditGenerator
 from pydantic import BaseModel
 from typing import List, Dict, Any
 
+# Import config FIRST to load environment variables
+from config import GEMINI_API_KEY
+
 # Initialize Engines
 security_engine = SecurityEngine()
-from api.ai_orchestrator import get_gemini_orchestrator
-audit_generator = AuditGenerator(get_gemini_orchestrator())
+# Initialize Gemini Orchestrator with real API key (no mock fallbacks)
+gemini_orchestrator = GeminiOrchestrator(GEMINI_API_KEY)
+audit_generator = AuditGenerator(gemini_orchestrator)
 
 class ScanRequest(BaseModel):
     path: str = "./" # Default to current directory
@@ -141,7 +145,7 @@ def scan_code_git_diff(req: AnalyzeRequest):
     # Step 3: AI Remediation (Prompted for Git Diff)
     # We re-use the orchestrator but ideally pass a flag for 'diff_format'
     # For now, we assume standard analysis includes the fix.
-    ai_fix = get_gemini_orchestrator().analyze_snippet(req.code, findings)
+    ai_fix = gemini_orchestrator.analyze_snippet(req.code, findings)
     
     return {
         "status": "Vulnerable",
@@ -158,7 +162,7 @@ def trigger_remediation(req: RemediationRequest):
     if state.FORTRESS_MODE:
          return JSONResponse(status_code=403, content={"error": "Remediation disabled in Fortress Mode"})
     
-    return get_gemini_orchestrator().generate_remediation(req.findings)
+    return gemini_orchestrator.generate_remediation(req.findings)
 
 
 
@@ -181,7 +185,7 @@ def analyze_code_snippet(req: AnalyzeRequest):
         return {"status": "Clean", "findings": [], "ai_analysis": "No vulnerabilities detected by static analysis."}
         
     # Step 3: AI Remediation
-    ai_fix = get_gemini_orchestrator().analyze_snippet(req.code, findings)
+    ai_fix = gemini_orchestrator.analyze_snippet(req.code, findings)
     
     return {
         "status": "Vulnerable",
@@ -281,28 +285,77 @@ async def trigger_cloud_scan(req: CloudScanRequest, request: Request):
     1. Clone (with token from cookie).
     2. Recon & Audit (Gemini).
     3. Return Project Intel + Flaw.
+    
+    NO MOCK DATA - Real scanning only.
     """
+    import re
+    from api.scanner_engine import run_cloud_scan, _cleanup_temp_dir
+    
+    # Validate GitHub URL format
+    github_pattern = r'^https?://github\.com/[\w-]+/[\w.-]+/?$'
+    if not re.match(github_pattern, req.repo_url.rstrip('/')):
+        return JSONResponse(
+            status_code=400, 
+            content={"error": "Invalid GitHub URL format. Expected: https://github.com/owner/repo"}
+        )
+    
     token = request.cookies.get("secure_token")
+    temp_path = None
     
-    # 1. Scanner Engine: Clone & Aggregate
-    # Import helper dynamically to avoid circular imports if any, though likely safe
-    from api.scanner_engine import run_cloud_scan
-    scan_data = run_cloud_scan(req.repo_url, access_token=token)
-    
-    if not scan_data["success"]:
-        return JSONResponse(status_code=400, content={"error": scan_data.get("error")})
+    try:
+        # 1. Scanner Engine: Clone & Aggregate
+        print(f"🚀 Starting cloud scan for: {req.repo_url}")
+        scan_data = run_cloud_scan(req.repo_url, access_token=token)
         
-    # 2. AI Orchestrator: Two-Phase Audit
-    file_tree = scan_data["tree"]
-    content = scan_data["content"]
+        if not scan_data["success"]:
+            error_msg = scan_data.get("error", "Unknown error")
+            
+            # Return appropriate status codes
+            if "not found" in error_msg.lower():
+                return JSONResponse(status_code=404, content={"error": error_msg})
+            elif "authentication" in error_msg.lower() or "private" in error_msg.lower():
+                return JSONResponse(status_code=401, content={"error": error_msg})
+            elif "timeout" in error_msg.lower():
+                return JSONResponse(status_code=408, content={"error": error_msg})
+            else:
+                return JSONResponse(status_code=500, content={"error": error_msg})
+        
+        # Store temp path for cleanup
+        temp_path = scan_data.get("temp_path")
+        
+        # 2. AI Orchestrator: Two-Phase Audit
+        file_tree = scan_data["tree"]
+        content = scan_data["content"]
+        
+        print(f"📊 File tree size: {len(file_tree)} chars, Content size: {len(content)} chars")
+        
+        analysis = await gemini_orchestrator.analyze_cloud_repo(file_tree, content)
+        
+        return {
+            "status": "Complete",
+            "project_intel": analysis.get("recon"),
+            "vulnerability": analysis.get("audit")
+        }
+        
+    except ValueError as e:
+        # JSON parsing errors from Gemini
+        print(f"❌ Value Error: {e}")
+        return JSONResponse(status_code=500, content={"error": f"AI analysis failed: {str(e)}"})
     
-    analysis = await get_gemini_orchestrator().analyze_cloud_repo(file_tree, content)
+    except RuntimeError as e:
+        # Gemini API errors
+        print(f"❌ Runtime Error: {e}")
+        return JSONResponse(status_code=503, content={"error": f"AI service unavailable: {str(e)}"})
     
-    return {
-        "status": "Complete",
-        "project_intel": analysis.get("recon"),
-        "vulnerability": analysis.get("audit")
-    }
+    except Exception as e:
+        # Unexpected errors
+        print(f"❌ Unexpected Error: {e}")
+        return JSONResponse(status_code=500, content={"error": f"Scan failed: {str(e)}"})
+    
+    finally:
+        # Always cleanup temp directory
+        if temp_path:
+            _cleanup_temp_dir(temp_path)
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

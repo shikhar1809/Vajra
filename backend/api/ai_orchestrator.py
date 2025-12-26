@@ -1,29 +1,27 @@
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 import os
 import json
 from database import get_db_con
 
 class GeminiOrchestrator:
-    def __init__(self):
-        # Lazy initialization - load API key when class is instantiated
-        from dotenv import load_dotenv
-        load_dotenv()
+    def __init__(self, api_key: str):
+        """
+        Initialize Gemini Orchestrator with real API key using new google-genai SDK.
+        No mock fallbacks - this is production code.
+        """
+        if not api_key or len(api_key) < 30:
+            raise ValueError(f"Invalid Gemini API key provided (length: {len(api_key) if api_key else 0})")
         
-        self.api_key = os.getenv("GEMINI_API_KEY", "MOCK")
-        print(f"DEBUG: API Key loaded: {self.api_key[:20]}..." if self.api_key != "MOCK" else "DEBUG: Using MOCK mode")
+        self.api_key = api_key
         
-        # Initialize Gemini model if real API key is present
-        if self.api_key != "MOCK":
-            try:
-                genai.configure(api_key=self.api_key)
-                self.model = genai.GenerativeModel('gemini-1.5-pro')
-                print(f"DEBUG: Gemini model initialized successfully: {self.model}")
-            except Exception as e:
-                print(f"DEBUG: Failed to initialize Gemini: {e}")
-                self.model = None
-        else:
-            print("DEBUG: Skipping Gemini initialization - using mock mode")
-            self.model = None
+        # Configure and initialize Gemini client with new SDK
+        try:
+            self.client = genai.Client(api_key=self.api_key)
+            self.model_name = 'gemini-2.5-flash'  # Using available model
+            print(f"✅ Gemini AI initialized successfully with model: {self.model_name}")
+        except Exception as e:
+            raise RuntimeError(f"Failed to initialize Gemini client: {e}")
 
     def generate_remediation(self, findings: list) -> dict:
         """
@@ -268,75 +266,109 @@ The organization's security posture is currently evaluated as **"""
         Two-Phase Analysis:
         1. Recon: Determine Architecture, Stack.
         2. Audit: Find Deep Logic Flaws.
+        
+        NO MOCK DATA - Real Gemini API analysis only.
         """
         
+        if not self.client:
+            raise RuntimeError("Gemini client not initialized. Cannot perform analysis.")
+        
         # --- PHASE 1: RECONNAISSANCE ---
-        # "Scan this file tree and tell me what this app is, its stack, and cloud providers."
         recon_prompt = f"""
-        Analyze this file structure and return a JSON object with:
-        app_type, tech_stack (list), architecture (e.g. Microservices, Monolith), cloud_provider.
+        Analyze this file structure and return ONLY a valid JSON object (no markdown, no code blocks) with these exact keys:
+        - app_type: string (e.g., "E-commerce Platform", "Social Network", "DevOps Tool")
+        - tech_stack: array of strings (e.g., ["Next.js", "Python FastAPI", "PostgreSQL"])
+        - architecture: string (e.g., "Microservices", "Monolith", "Serverless")
+        - cloud_provider: string (e.g., "AWS", "GCP", "Azure", "Self-hosted")
+        
         File Tree:
-        {file_tree}
+        {file_tree[:5000]}
+        
+        Return ONLY the JSON object, nothing else.
         """
         
         # --- PHASE 2: DEEP LOGIC AUDIT ---
-        # "Given this context and content, find CRITICAL Logic Flaws (Auth bypass, Race Conditions)."
         audit_prompt = f"""
-        Review this Codebase Content. identify ONE Critical Logic Vulnerability (e.g. IDOR, Race Condition).
-        Return JSON:
-        type (Vulnerability Name),
-        severity (Critical/High),
-        location (Filename:Line),
-        description (Short explanation),
-        impact (Business impact),
-        code_snippet (The vulnerable code),
-        fix_code (The secure version)
+        Review this codebase and identify ONE critical security vulnerability.
+        Return ONLY a valid JSON object (no markdown, no code blocks) with these exact keys:
+        - type: string (vulnerability name, e.g., "SQL Injection", "Race Condition", "IDOR")
+        - severity: string ("CRITICAL" or "HIGH")
+        - location: string (filename:line, e.g., "api/auth.py:42")
+        - description: string (brief explanation of the vulnerability)
+        - impact: string (business impact)
+        - code_snippet: string (the vulnerable code)
+        - fix_code: string (the secure version)
         
-        Content:
-        {content[:100000]} 
+        If no critical vulnerabilities found, return:
+        {{"type": "No Critical Vulnerabilities", "severity": "NONE", "location": "N/A", "description": "Code review found no critical security issues", "impact": "None", "code_snippet": "", "fix_code": ""}}
+        
+        Content (first 100KB):
+        {content[:100000]}
+        
+        Return ONLY the JSON object, nothing else.
         """
         
-        # --- MOCK FALLBACK (Hackathon Speed) ---
-        if self.model == "MockModel" or not self.model:
-             # Simulate "Thinking" time in async if needed, but for now return instant
-             return {
-                 "recon": {
-                     "app_type": "High-Frequency Trading Platform",
-                     "tech_stack": ["Python (FastAPI)", "React", "PostgreSQL", "Redis"],
-                     "architecture": "Event-Driven Microservices",
-                     "cloud_provider": "AWS (Detected via config)"
-                 },
-                 "audit": {
-                     "type": "Race Condition in Order Processing",
-                     "severity": "CRITICAL",
-                     "location": "backend/orders/processor.py:42",
-                     "description": "Double-spend vulnerability. The system checks balance before deducting, but does not lock the row. Parallel requests can drain the wallet.",
-                     "impact": "Potential loss of millions in unauthorized trades.",
-                     "code_snippet": "if user.balance >= code_cost:\n    # Race Window Here\n    user.balance -= cost\n    execute_trade()",
-                     "fix_code": "with db.transaction():\n    user = select_for_update(user_id)\n    if user.balance >= cost:\n        user.balance -= cost\n        execute_trade()"
-                 }
-             }
-        
-        # --- REAL GEMINI IMPLEMENTATION (If Key Present) ---
         try:
-            # 1. Recon
-            recon_resp = self.model.generate_content(recon_prompt)
-            recon_data = json.loads(recon_resp.text.replace("```json", "").replace("```", ""))
+            print("🧠 Phase 1: Reconnaissance with Gemini AI...")
+            # Phase 1: Reconnaissance using new SDK
+            recon_resp = await self.client.aio.models.generate_content(
+                model=self.model_name,
+                contents=recon_prompt
+            )
+            recon_text = recon_resp.text.strip()
             
-            # 2. Audit
-            audit_resp = self.model.generate_content(audit_prompt)
-            audit_data = json.loads(audit_resp.text.replace("```json", "").replace("```", ""))
+            # Clean up markdown code blocks if present
+            recon_text = recon_text.replace("```json", "").replace("```", "").strip()
+            
+            # Try to parse JSON
+            try:
+                recon_data = json.loads(recon_text)
+            except json.JSONDecodeError:
+                # If JSON parsing fails, try to extract JSON from text
+                import re
+                json_match = re.search(r'\{.*\}', recon_text, re.DOTALL)
+                if json_match:
+                    recon_data = json.loads(json_match.group())
+                else:
+                    raise ValueError(f"Could not extract valid JSON from reconnaissance response")
+            
+            print(f"✅ Reconnaissance: {recon_data.get('app_type', 'Unknown')}")
+            
+            print("🕵️ Phase 2: Deep Logic Audit with Gemini AI...")
+            # Phase 2: Deep Logic Audit using new SDK
+            audit_resp = await self.client.aio.models.generate_content(
+                model=self.model_name,
+                contents=audit_prompt
+            )
+            audit_text = audit_resp.text.strip()
+            
+            # Clean up markdown code blocks if present
+            audit_text = audit_text.replace("```json", "").replace("```", "").strip()
+            
+            # Try to parse JSON
+            try:
+                audit_data = json.loads(audit_text)
+            except json.JSONDecodeError:
+                # If JSON parsing fails, try to extract JSON from text
+                import re
+                json_match = re.search(r'\{.*\}', audit_text, re.DOTALL)
+                if json_match:
+                    audit_data = json.loads(json_match.group())
+                else:
+                    raise ValueError(f"Could not extract valid JSON from audit response")
+            
+            print(f"✅ Audit: {audit_data.get('type', 'Unknown')}")
             
             return {"recon": recon_data, "audit": audit_data}
             
+        except json.JSONDecodeError as e:
+            print(f"❌ JSON Parse Error: {e}")
+            print(f"Recon text: {recon_text[:200] if 'recon_text' in locals() else 'N/A'}")
+            print(f"Audit text: {audit_text[:200] if 'audit_text' in locals() else 'N/A'}")
+            raise ValueError(f"Gemini returned invalid JSON format: {e}")
         except Exception as e:
-            print(f"Gemini API Error: {e}. Falling back to Mock.")
-            # Fallback to mock if API fails - set model to None to trigger mock path
-            original_model = self.model
-            self.model = None
-            result = await self.analyze_cloud_repo(file_tree, content)
-            self.model = original_model
-            return result
+            print(f"❌ Gemini AI Error: {e}")
+            raise RuntimeError(f"Gemini AI analysis failed: {e}")
 
 
 
