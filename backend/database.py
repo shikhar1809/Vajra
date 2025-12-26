@@ -2,7 +2,10 @@ import duckdb
 import os
 
 # Use environment variable for database path, fallback to local
-DB_PATH = os.getenv("DATABASE_PATH", "vajra.duckdb")
+# Use environment variable for database path, fallback to local
+# DB_PATH = os.getenv("DATABASE_PATH", "vajra.duckdb")
+DB_PATH = "vajra_production.duckdb" 
+
 con = None
 
 def init_db():

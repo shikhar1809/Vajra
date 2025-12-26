@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, ShieldAlert, Users, FileText, Lock } from "lucide-react";
+import { LayoutDashboard, ShieldAlert, Users, FileText, Lock, BrainCircuit } from "lucide-react";
 import clsx from "clsx";
 
 const navItems = [
@@ -10,6 +10,7 @@ const navItems = [
     { label: "Vendor Risk", href: "/vendor-risk", icon: ShieldAlert },
     { label: "Employee Security", href: "/employee-security", icon: Users },
     { label: "Compliance", href: "/compliance", icon: FileText },
+    { label: "Agenios (Scanner)", href: "/agenios/scan", icon: BrainCircuit },
     { label: "Threat-Pulse", href: "/threat-pulse", icon: Lock },
 ];
 

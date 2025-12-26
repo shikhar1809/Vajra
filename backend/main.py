@@ -10,6 +10,7 @@ from api.financial import router as financial_router
 from api.employees import router as employees_router
 from api.compliance import router as compliance_router
 from api.news import router as news_router
+from api.auth import router as auth_router
 from api.security_engine import SecurityEngine
 from api.ai_orchestrator import GeminiOrchestrator, AuditGenerator
 from pydantic import BaseModel
@@ -17,8 +18,8 @@ from typing import List, Dict, Any
 
 # Initialize Engines
 security_engine = SecurityEngine()
-from api.ai_orchestrator import gemini_orchestrator
-audit_generator = AuditGenerator(gemini_orchestrator)
+from api.ai_orchestrator import get_gemini_orchestrator
+audit_generator = AuditGenerator(get_gemini_orchestrator())
 
 class ScanRequest(BaseModel):
     path: str = "./" # Default to current directory
@@ -32,6 +33,9 @@ class RemediationRequest(BaseModel):
     
 import uvicorn
 import os
+from dotenv import load_dotenv
+
+load_dotenv() # Load .env file
 
 # --- Global State ---
 class GlobalState:
@@ -43,12 +47,12 @@ state = GlobalState()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
-    print("Initializing DuckDB connection pool...")
-    init_db()
+    print("Skipping DuckDB initialization (temporarily disabled)")
+    # init_db()  # TEMPORARILY DISABLED DUE TO LOCK ISSUES
     yield
     # Shutdown
-    print("Closing DuckDB connection...")
-    close_db()
+    print("Skipping DuckDB close")
+    # close_db()  # TEMPORARILY DISABLED
 
 app = FastAPI(title="Vajra Core API", version="1.0.0", lifespan=lifespan)
 
@@ -102,6 +106,7 @@ app.include_router(financial_router)
 app.include_router(employees_router)
 app.include_router(compliance_router)
 app.include_router(news_router)
+app.include_router(auth_router)
 
 @app.get("/health")
 def health_check():
@@ -136,7 +141,7 @@ def scan_code_git_diff(req: AnalyzeRequest):
     # Step 3: AI Remediation (Prompted for Git Diff)
     # We re-use the orchestrator but ideally pass a flag for 'diff_format'
     # For now, we assume standard analysis includes the fix.
-    ai_fix = gemini_orchestrator.analyze_snippet(req.code, findings)
+    ai_fix = get_gemini_orchestrator().analyze_snippet(req.code, findings)
     
     return {
         "status": "Vulnerable",
@@ -153,7 +158,7 @@ def trigger_remediation(req: RemediationRequest):
     if state.FORTRESS_MODE:
          return JSONResponse(status_code=403, content={"error": "Remediation disabled in Fortress Mode"})
     
-    return gemini_orchestrator.generate_remediation(req.findings)
+    return get_gemini_orchestrator().generate_remediation(req.findings)
 
 
 
@@ -176,7 +181,7 @@ def analyze_code_snippet(req: AnalyzeRequest):
         return {"status": "Clean", "findings": [], "ai_analysis": "No vulnerabilities detected by static analysis."}
         
     # Step 3: AI Remediation
-    ai_fix = gemini_orchestrator.analyze_snippet(req.code, findings)
+    ai_fix = get_gemini_orchestrator().analyze_snippet(req.code, findings)
     
     return {
         "status": "Vulnerable",
@@ -263,6 +268,40 @@ async def trigger_scan():
         "vulnerabilities_found": len(raw_findings),
         "remediation_plan": ai_remediation,
         "raw_results": raw_findings[:5] # Show the judges the technical logs
+    }
+
+# --- Feature: Cloud-Native Scanner Endpoint ---
+class CloudScanRequest(BaseModel):
+    repo_url: str
+
+@app.post("/api/v1/cloud-scan")
+async def trigger_cloud_scan(req: CloudScanRequest, request: Request):
+    """
+    Orchestrates the full Cloud-Native Audit:
+    1. Clone (with token from cookie).
+    2. Recon & Audit (Gemini).
+    3. Return Project Intel + Flaw.
+    """
+    token = request.cookies.get("secure_token")
+    
+    # 1. Scanner Engine: Clone & Aggregate
+    # Import helper dynamically to avoid circular imports if any, though likely safe
+    from api.scanner_engine import run_cloud_scan
+    scan_data = run_cloud_scan(req.repo_url, access_token=token)
+    
+    if not scan_data["success"]:
+        return JSONResponse(status_code=400, content={"error": scan_data.get("error")})
+        
+    # 2. AI Orchestrator: Two-Phase Audit
+    file_tree = scan_data["tree"]
+    content = scan_data["content"]
+    
+    analysis = await get_gemini_orchestrator().analyze_cloud_repo(file_tree, content)
+    
+    return {
+        "status": "Complete",
+        "project_intel": analysis.get("recon"),
+        "vulnerability": analysis.get("audit")
     }
 
 if __name__ == "__main__":

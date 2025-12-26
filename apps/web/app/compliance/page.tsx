@@ -128,7 +128,7 @@ export default function CompliancePage() {
         <div className="p-8 h-full overflow-y-auto space-y-8 pb-20">
             <header className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-3xl font-bold text-white tracking-tight">Audit Readiness Center</h1>
+                    <h1 className="text-3xl font-bold text-white tracking-tight">Insurance Readiness & Compliance</h1>
                     <p className="text-slate-400 text-sm mt-1">Automated evidence collection & liability protection.</p>
                 </div>
                 <div className="flex gap-3">

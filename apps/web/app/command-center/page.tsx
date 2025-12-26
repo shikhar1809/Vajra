@@ -198,23 +198,7 @@ export default function CommandCenterPage() {
                 </Card>
             </div>
 
-            {/* Row 3: AI Scanner */}
-            <Card className="bg-slate-900 border-slate-800 hover:border-blue-500/30 transition-colors group">
-                <CardHeader>
-                    <CardTitle className="text-slate-100 flex items-center gap-2">
-                        <FileCode className="w-5 h-5 text-blue-500" />
-                        AI Vulnerability Analysis
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    {/* Mock Dropzone */}
-                    <div className="border-2 border-dashed border-slate-700 rounded-xl bg-slate-950/50 h-32 flex flex-col items-center justify-center cursor-pointer group-hover:bg-slate-900 transition-colors">
-                        <FileCode className="w-8 h-8 text-slate-500 mb-2 group-hover:text-blue-400 transition-colors" />
-                        <p className="text-slate-400 text-sm font-medium">Drag & Drop code file to analyze</p>
-                        <p className="text-slate-600 text-xs mt-1">Uses Semgrep + Gemini 3 Pro</p>
-                    </div>
-                </CardContent>
-            </Card>
+
         </div>
     );
 }

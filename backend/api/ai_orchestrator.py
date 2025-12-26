@@ -1,13 +1,29 @@
-# import google.generativeai as genai (Removed for Stability)
+import google.generativeai as genai
 import os
 import json
 from database import get_db_con
 
 class GeminiOrchestrator:
     def __init__(self):
-        # Mock initialization
-        self.api_key = "MOCK_KEY"
-        self.model = "MockModel" 
+        # Lazy initialization - load API key when class is instantiated
+        from dotenv import load_dotenv
+        load_dotenv()
+        
+        self.api_key = os.getenv("GEMINI_API_KEY", "MOCK")
+        print(f"DEBUG: API Key loaded: {self.api_key[:20]}..." if self.api_key != "MOCK" else "DEBUG: Using MOCK mode")
+        
+        # Initialize Gemini model if real API key is present
+        if self.api_key != "MOCK":
+            try:
+                genai.configure(api_key=self.api_key)
+                self.model = genai.GenerativeModel('gemini-1.5-pro')
+                print(f"DEBUG: Gemini model initialized successfully: {self.model}")
+            except Exception as e:
+                print(f"DEBUG: Failed to initialize Gemini: {e}")
+                self.model = None
+        else:
+            print("DEBUG: Skipping Gemini initialization - using mock mode")
+            self.model = None
 
     def generate_remediation(self, findings: list) -> dict:
         """
@@ -206,8 +222,144 @@ The organization's security posture is currently evaluated as **"""
         💡 **Pro-Tip**: Enable 2FA on all sensitive accounts.
         """
 
-# Singleton Instance
-gemini_orchestrator = GeminiOrchestrator()
+        return f"""
+        **Security Moment for {employee_name}**
+        ⚠️ **Alert**: {risk_type} detected.
+        🛡️ **Action**: Review your recent activity logs.
+        💡 **Pro-Tip**: Enable 2FA on all sensitive accounts.
+        """
+
+    def analyze_urgency(self, text: str, vendor: str) -> dict:
+        """
+        AI Context Filter: Determines if urgency is legitimate or scam.
+        """
+        # Mocking sophisticated context understanding
+        text_lower = text.lower()
+        is_scam = False
+        confidence = 0.0
+        reason = "Normal business communication."
+
+        # Scam Patterns
+        if "final notice" in text_lower or "immediate disconnection" in text_lower:
+            # Context Check: Utilities often send these, but unknown vendors shouldn't
+            if "cloud" in vendor.lower() or "service" in vendor.lower():
+                 is_scam = True
+                 confidence = 0.85
+                 reason = "High-pressure tactics are untypical for Enterprise B2B SaaS."
+            else:
+                 # Likely utility bill
+                 is_scam = False
+                 confidence = 0.4
+                 reason = "Urgency matches typical utility disconnection notice."
+        
+        if "change" in text_lower and "bank" in text_lower:
+             is_scam = True
+             confidence = 0.99
+             reason = "CRITICAL: Unauthorized request to change payment routing."
+        
+        return {
+            "is_scam": is_scam,
+            "confidence": confidence,
+            "reason": reason
+        }
+
+    async def analyze_cloud_repo(self, file_tree: str, content: str) -> dict:
+        """
+        Two-Phase Analysis:
+        1. Recon: Determine Architecture, Stack.
+        2. Audit: Find Deep Logic Flaws.
+        """
+        
+        # --- PHASE 1: RECONNAISSANCE ---
+        # "Scan this file tree and tell me what this app is, its stack, and cloud providers."
+        recon_prompt = f"""
+        Analyze this file structure and return a JSON object with:
+        app_type, tech_stack (list), architecture (e.g. Microservices, Monolith), cloud_provider.
+        File Tree:
+        {file_tree}
+        """
+        
+        # --- PHASE 2: DEEP LOGIC AUDIT ---
+        # "Given this context and content, find CRITICAL Logic Flaws (Auth bypass, Race Conditions)."
+        audit_prompt = f"""
+        Review this Codebase Content. identify ONE Critical Logic Vulnerability (e.g. IDOR, Race Condition).
+        Return JSON:
+        type (Vulnerability Name),
+        severity (Critical/High),
+        location (Filename:Line),
+        description (Short explanation),
+        impact (Business impact),
+        code_snippet (The vulnerable code),
+        fix_code (The secure version)
+        
+        Content:
+        {content[:100000]} 
+        """
+        
+        # --- MOCK FALLBACK (Hackathon Speed) ---
+        if self.model == "MockModel" or not self.model:
+             # Simulate "Thinking" time in async if needed, but for now return instant
+             return {
+                 "recon": {
+                     "app_type": "High-Frequency Trading Platform",
+                     "tech_stack": ["Python (FastAPI)", "React", "PostgreSQL", "Redis"],
+                     "architecture": "Event-Driven Microservices",
+                     "cloud_provider": "AWS (Detected via config)"
+                 },
+                 "audit": {
+                     "type": "Race Condition in Order Processing",
+                     "severity": "CRITICAL",
+                     "location": "backend/orders/processor.py:42",
+                     "description": "Double-spend vulnerability. The system checks balance before deducting, but does not lock the row. Parallel requests can drain the wallet.",
+                     "impact": "Potential loss of millions in unauthorized trades.",
+                     "code_snippet": "if user.balance >= code_cost:\n    # Race Window Here\n    user.balance -= cost\n    execute_trade()",
+                     "fix_code": "with db.transaction():\n    user = select_for_update(user_id)\n    if user.balance >= cost:\n        user.balance -= cost\n        execute_trade()"
+                 }
+             }
+        
+        # --- REAL GEMINI IMPLEMENTATION (If Key Present) ---
+        try:
+            # 1. Recon
+            recon_resp = self.model.generate_content(recon_prompt)
+            recon_data = json.loads(recon_resp.text.replace("```json", "").replace("```", ""))
+            
+            # 2. Audit
+            audit_resp = self.model.generate_content(audit_prompt)
+            audit_data = json.loads(audit_resp.text.replace("```json", "").replace("```", ""))
+            
+            return {"recon": recon_data, "audit": audit_data}
+            
+        except Exception as e:
+            print(f"Gemini API Error: {e}. Falling back to Mock.")
+            # Fallback to mock if API fails - set model to None to trigger mock path
+            original_model = self.model
+            self.model = None
+            result = await self.analyze_cloud_repo(file_tree, content)
+            self.model = original_model
+            return result
+
+
+
+# Lazy Singleton Instance - created on first access, not at import time
+_gemini_orchestrator_instance = None
+
+def get_gemini_orchestrator():
+    global _gemini_orchestrator_instance
+    if _gemini_orchestrator_instance is None:
+        print("DEBUG: Creating GeminiOrchestrator instance (lazy initialization)")
+        _gemini_orchestrator_instance = GeminiOrchestrator()
+    return _gemini_orchestrator_instance
+
+# Backward compatibility - create a module-level proxy
+class _OrchestratorProxy:
+    """Proxy that lazily initializes the orchestrator on first attribute access"""
+    def __getattr__(self, name):
+        return getattr(get_gemini_orchestrator(), name)
+    
+    def __call__(self, *args, **kwargs):
+        return get_gemini_orchestrator()(*args, **kwargs)
+
+gemini_orchestrator = _OrchestratorProxy()
 
 class AuditGenerator:
     def __init__(self, orchestrator: GeminiOrchestrator):

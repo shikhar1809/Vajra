@@ -1,6 +1,8 @@
 import subprocess
 import json
 import os
+import shutil
+import tempfile
 import google.generativeai as genai
 from typing import List, Dict, Any
 
@@ -11,6 +13,91 @@ if API_KEY != "MOCK":
     gemini_model = genai.GenerativeModel('gemini-1.5-pro')
 else:
     gemini_model = None
+
+# --- Feature: Cloud-Native Scanner Helpers ---
+def run_cloud_scan(repo_url: str, access_token: str = None) -> Dict[str, Any]:
+    """
+    Clones a remote GitHub repo and aggregates context for AI analysis.
+    Returns: {"tree": str, "content": str, "cleanup_status": bool}
+    """
+    temp_dir = tempfile.mkdtemp(prefix="vajra_scan_")
+    print(f"☁️ VAJRA Cloud: Cloning {repo_url} to {temp_dir}...")
+    
+    try:
+        # 1. Clone
+        auth_url = repo_url
+        if access_token and "github.com" in repo_url:
+            # Inject token: https://TOKEN@github.com/org/repo
+            auth_url = repo_url.replace("https://", f"https://{access_token}@")
+            
+        subprocess.run(
+            ["git", "clone", "--depth", "1", auth_url, temp_dir],
+            check=True, timeout=120, capture_output=True
+        )
+        
+        # 2. Gather Context
+        file_tree = _get_file_tree(temp_dir)
+        content_block = _aggregate_content(temp_dir)
+        
+        return {
+            "success": True,
+            "tree": file_tree,
+            "content": content_block,
+            "temp_path": temp_dir # Return path if we want semgrep to scan it too
+        }
+
+    except Exception as e:
+        print(f"❌ Cloud Scan Failed: {e}")
+        return {"success": False, "error": str(e)}
+    finally:
+        # Cleanup (Optimistic)
+        # In real scan, we might wait until Analysis is done, 
+        # but for this function we return the text data so we can kill the dir.
+        try:
+            shutil.rmtree(temp_dir)
+            print(f"🧹 Cleanup: Removed {temp_dir}")
+        except Exception as  cleanup_err:
+            print(f"⚠️ Cleanup failed: {cleanup_err}")
+
+def _get_file_tree(startpath):
+    tree_str = ""
+    for root, dirs, files in os.walk(startpath):
+        level = root.replace(startpath, '').count(os.sep)
+        indent = ' ' * 4 * (level)
+        if ".git" in root or "node_modules" in root or "__pycache__" in root:
+            continue
+        tree_str += '{}{}/\n'.format(indent, os.path.basename(root))
+        subindent = ' ' * 4 * (level + 1)
+        for f in files:
+            if f.startswith("."): continue
+            tree_str += '{}{}\n'.format(subindent, f)
+    return tree_str
+
+def _aggregate_content(startpath):
+    content = ""
+    # Limit files to read (prevent reading binary or massive locks)
+    ALLOWED_EXTS = {'.py', '.js', '.ts', '.tsx', '.jsx', '.go', '.rs', '.java', '.c', '.cpp', '.h', '.json', '.md', '.txt', '.yml', '.yaml', '.Dockerfile', 'Dockerfile'}
+    
+    for root, dirs, files in os.walk(startpath):
+        if ".git" in root or "node_modules" in root: continue
+        
+        for f in files:
+            ext = os.path.splitext(f)[1]
+            if ext in ALLOWED_EXTS or f in ALLOWED_EXTS:
+                path = os.path.join(root, f)
+                try:
+                    with open(path, 'r', encoding='utf-8', errors='ignore') as file_obj:
+                        data = file_obj.read()
+                        # Limit single file size to 100KB to prevent context overflow from logs
+                        if len(data) > 100000: data = data[:100000] + "...[TRUNCATED]"
+                        
+                        rel_path = os.path.relpath(path, startpath)
+                        content += f"\n\n--- FILE: {rel_path} ---\n{data}"
+                except Exception:
+                    continue
+    return content
+
+# --- End Feature helpers ---
 
 def run_vulnerability_scan(target_path="./"):
     """

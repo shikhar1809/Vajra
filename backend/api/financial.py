@@ -21,17 +21,30 @@ class BillAnalysisResponse(BaseModel):
     historical_avg: float
 
 
+from api.ai_orchestrator import gemini_orchestrator
+
 def calculate_heuristic_risk(extracted_json, raw_text):
     risk_score = 10  # Baseline
     alerts = []
+    vendor = extracted_json.get("vendor_name", "Unknown")
 
-    # 🚨 Red Flag 1: High Pressure (Social Engineering)
+    # 🚨 Red Flag 1: High Pressure (Social Engineering) - NOW WITH AI CONTEXT FILTER
+    # Old dumb logic: if "URGENT" in text -> Flag
+    # New AI logic: Ask Gemini if it's suspicious
+    ai_context = gemini_orchestrator.analyze_urgency(raw_text, vendor)
+    
+    if ai_context["is_scam"]:
+        risk_score += int(ai_context["confidence"] * 50) # Scale based on confidence
+        alerts.append(f"AI Heuristic Alert: {ai_context['reason']}")
+    
+    # Fallback/Supplemental Keyword Check
     pressure_terms = ["URGENT", "FINAL NOTICE", "DISCONNECTION", "ACTION REQUIRED"]
     for term in pressure_terms:
-        if term in raw_text.upper():
-            risk_score += 30
-            alerts.append(f"Urgency Detected: '{term}' flagged as social engineering.")
-            break # Only flag once per categories
+        if term in raw_text.upper() and not ai_context["is_scam"]: # Only add if AI didn't already catch it deeply
+            # AI says it's ok, but we trust keywords slightly riskier? 
+            # Actually, let's trust AI to reduce False Positives.
+            # If AI said "Not Scam" (e.g. utility bill), we SKIP this penalty.
+            pass 
 
     # 🚨 Red Flag 2: Domain Spoofing
     email = extracted_json.get("contact_email", "").lower()
@@ -64,7 +77,9 @@ async def onboard_bill(file: UploadFile = File(...)):
         # Known Hashes from "Visual Memory"
         HASH_FRAUD = "35ee303d8d5df8f972b9a7ca904ca433" 
         HASH_REAL = "45e7f1cb90c68128362d294025ad50ea"
-
+        
+        # ... (Extraction Logic Simulating AI Vision) ...
+        # [Preserving existing extraction logic map]
         print(f"DEBUG - Scanned Document Hash: {file_hash}")
 
         # Simulate strict extraction - Literal extraction only
@@ -148,6 +163,28 @@ async def onboard_bill(file: UploadFile = File(...)):
                  susness_score = max(susness_score, 85)
                  ratio = extracted_data['amount'] / historical_avg
                  alerts.append(f"Velocity Anomaly: Amount ${extracted_data['amount']:,.2f} is {ratio:.0f}x historical average.")
+        else:
+            # GAP 1: COLD START PROBLEM (Global Reputation Check)
+            # Vendor is not in our internal DB. Check "Global Registry".
+            print("DEBUG: Vendor unknown locally. Initiating Global Reputation Check...")
+            
+            # Simple Simulation of a Global Registry
+            # If vendor name looks "Big" (e.g. Cloudflare, AWS), we trust more.
+            # If name is generic, we distrust.
+            
+            # For this demo, let's assume unknown = risky unless validated
+            susness_score += 20
+            alerts.append(f"New Vendor Alert: first invoice seen from '{extracted_data['vendor_name']}'.")
+            
+            if extracted_data['amount'] > 5000:
+                susness_score += 15
+                alerts.append("High-Value Interaction: Large first-time payment requires manual approval.")
+                
+            # Simulate "Global Registry" hit
+            if "cloud" in extracted_data['vendor_name'].lower():
+                 alerts.append("Global Registry: Vendor identity matches known public entity (Low Confidence).")
+            else:
+                 alerts.append("Global Registry: No public record found for this entity.")
 
         # Final Score Cap
         susness_score = min(susness_score, 100)

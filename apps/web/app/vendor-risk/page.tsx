@@ -128,6 +128,18 @@ export default function VendorRiskPage() {
                                     >
                                         <AlertOctagon className="w-4 h-4 mr-2" /> Simulate Breach
                                     </Button>
+                                    <Button
+                                        variant="default"
+                                        className="flex-1 bg-orange-600 hover:bg-orange-700 text-white"
+                                        onClick={() => {
+                                            alert("🛑 KILL SWITCH ACTIVATED: Payment Gateway frozen for this Vendor ID. API Request sent to Bank.");
+                                        }}
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" /></svg>
+                                            Freeze Payment
+                                        </div>
+                                    </Button>
                                 </div>
                                 <div className="mt-4">
                                     <DownloadReportButton vendorName={analysisResult.vendor_name} />

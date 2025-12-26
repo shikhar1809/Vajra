@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { AreaChart } from "@tremor/react";
-import { Shield, Lock, Unlock, Activity, AlertTriangle, FileCode } from "lucide-react";
+import { Shield, Lock, Unlock, Activity, AlertTriangle, FileCode, BrainCircuit, ArrowRight } from "lucide-react";
 import clsx from "clsx";
 import { AnimatePresence, motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -197,20 +198,43 @@ export default function WorkspacePage() {
                 </Card>
             </div>
 
-            {/* AI Vulnerability Analysis (Bottom Full-Width) */}
-            <Card className="bg-slate-900 border-slate-800">
+            {/* AI Deep-Logic Auditor (New Feature) */}
+            <Card className="bg-slate-900 border-slate-800 relative overflow-hidden group hover:border-pink-500/50 transition-all">
+                <div className="absolute top-0 right-0 p-4 opacity-50 text-pink-900">
+                    <BrainCircuit className="w-32 h-32" />
+                </div>
                 <CardHeader>
-                    <CardTitle className="text-slate-100 flex items-center gap-2">
-                        AI Vulnerability Analysis (Semgrep + Gemini)
+                    <CardTitle className="text-slate-100 flex items-center gap-2 relative z-10">
+                        <BrainCircuit className="w-6 h-6 text-pink-500" />
+                        VAJRA "Deep-Logic" Auditor
+                        <Badge variant="outline" className="border-pink-500 text-pink-400">NEW</Badge>
                     </CardTitle>
                 </CardHeader>
-                <CardContent>
-                    <div className="border-2 border-dashed border-slate-700 rounded-xl bg-slate-950/50 h-64 flex flex-col items-center justify-center cursor-pointer hover:border-red-500/50 hover:bg-slate-950 transition-all group">
-                        <div className="p-4 rounded-full bg-slate-900 group-hover:bg-red-950/20 transition-colors mb-4">
-                            <FileCode className="w-10 h-10 text-slate-500 group-hover:text-red-500 transition-colors" />
+                <CardContent className="relative z-10">
+                    <div className="flex justify-between items-center">
+                        <div className="max-w-xl">
+                            <p className="text-slate-400 mb-4 text-sm">
+                                Use Gemini 3 Pro to find "Chain-of-Logic" vulnerabilities that standard scanners miss.
+                                Analyze state, business logic, and API flows in one autonomous loop.
+                            </p>
+                            <Link href="/agenios/scan">
+                                <Button className="bg-pink-600 hover:bg-pink-700 text-white font-bold shadow-[0_0_20px_rgba(219,39,119,0.3)]">
+                                    <BrainCircuit className="w-4 h-4 mr-2" /> Launch Deep-Logic Scan <ArrowRight className="w-4 h-4 ml-2" />
+                                </Button>
+                            </Link>
                         </div>
-                        <h3 className="text-lg font-semibold text-slate-300 group-hover:text-white transition-colors">Drag & Drop code file to analyze</h3>
-                        <p className="text-sm text-slate-500 mt-2 font-mono">Supports .py, .js, .ts, .go</p>
+
+                        {/* Mini Visual */}
+                        <div className="hidden md:flex gap-4 opacity-70">
+                            <div className="p-3 rounded-lg bg-slate-950 border border-slate-800 text-xs font-mono text-slate-500">
+                                def logic_flow():<br />
+                                &nbsp;&nbsp;...
+                            </div>
+                            <ArrowRight className="text-slate-600 w-6 h-6 self-center" />
+                            <div className="p-3 rounded-lg bg-slate-950 border border-pink-900/30 text-xs font-mono text-pink-400">
+                                Critical Flaw Found
+                            </div>
+                        </div>
                     </div>
                 </CardContent>
             </Card>

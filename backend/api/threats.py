@@ -102,6 +102,19 @@ async def stream_threats(request: Request):
     return EventSourceResponse(event_generator())
 
 # --- Middleware Helper to be called from main.py ---
+# Feature 3: Business Context / Whitelist Windows
+# In-memory store for demo purposes
+WHITELIST_WINDOWS = [
+    # Demo Mock: Always active for "Black Friday" logic if header present, 
+    # or we can push to this list via API.
+    # {"name": "Black Friday Sale", "start": 0, "end": 0} 
+]
+
+@router.post("/api/v1/settings/whitelist")
+async def add_whitelist_window(event: dict):
+    WHITELIST_WINDOWS.append(event)
+    return {"status": "Added", "window": event}
+
 async def check_ddos(request: Request) -> bool:
     """
     Checks if request limit exceeded. Returns True if request should be blocked.
@@ -111,19 +124,53 @@ async def check_ddos(request: Request) -> bool:
     # Track request via Anomaly Detector
     threat_score = detector.track_request(ip)
     
+    # Feature 3: Business Context Check
+    # Check if we are in a planned event window (Mock Logic for Demo)
+    # Ideally check timestamps, but for demo we can check a Header or just if any window is "Active" in our mock list
+    is_planned_event = False
+    event_name = ""
+    
+    # SIMPLIFICATION FOR DEMO: If "X-Planned-Event" header is present, treat as whitelist
+    if request.headers.get("X-Planned-Event"):
+        is_planned_event = True
+        event_name = request.headers.get("X-Planned-Event")
+    
+    # Also Check In-Memory List (if we posted to it)
+    current_time = time.time()
+    for window in WHITELIST_WINDOWS:
+        # Simple int/float comparison if they have start/end
+        if window.get("start", 0) <= current_time <= window.get("end", 0):
+            is_planned_event = True
+            event_name = window.get("name", "Planned Event")
+            break
+
     # Threshold is 20 requests in 1 second (Score 50.0)
     # If limit exceeded (count > 20), score will be > 50.0
     if threat_score > 50.0:
-        # Detected!
-        threat_data = {
-            "source_ip": ip,
-            "timestamp": time.time(),
-            "type": "DoS_ATTACK",
-            "threat_score": round(threat_score, 2),
-            "severity": "CRITICAL",
-            "message": f"CRITICAL: IP {ip} exceeded 20 req/sec limit. Blocking."
-        }
-        await broadcast_event("threat", threat_data)
-        return True # Block Request
+        if is_planned_event:
+            # BROADCAST SAFE / PLANNED status
+            threat_data = {
+                "source_ip": ip,
+                "timestamp": time.time(),
+                "type": "TRAFFIC_SPIKE",
+                "threat_score": 5.0, # Low score because it's whitelisted
+                "severity": "SAFE",
+                "message": f"High Traffic detected from {ip}. Status: SAFE (Planned Event: {event_name})."
+            }
+            await broadcast_event("threat", threat_data)
+            return False # DO NOT BLOCK
+            
+        else:
+            # Detected!
+            threat_data = {
+                "source_ip": ip,
+                "timestamp": time.time(),
+                "type": "DoS_ATTACK",
+                "threat_score": round(threat_score, 2),
+                "severity": "CRITICAL",
+                "message": f"CRITICAL: IP {ip} exceeded 20 req/sec limit. Blocking."
+            }
+            await broadcast_event("threat", threat_data)
+            return True # Block Request
         
     return False # Allow Request

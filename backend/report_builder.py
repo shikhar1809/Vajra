@@ -6,7 +6,7 @@ class VajraReport(FPDF):
         # Header with branding
         self.set_font('Arial', 'B', 15)
         self.set_text_color(255, 0, 0) # VAJRA RED
-        self.cell(0, 10, 'VAJRA - AUTOMATED FRAUD INCIDENT REPORT', 0, 1, 'C')
+        self.cell(0, 10, 'VAJRA: CYBER INSURANCE & INCIDENT READINESS REPORT', 0, 1, 'C')
         self.set_font('Arial', '', 10)
         self.set_text_color(0, 0, 0)
         self.cell(0, 10, f'Report Generated: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}', 0, 1, 'R')
@@ -33,9 +33,22 @@ def create_pdf_report(vendor_data, heuristic_results, filename="VAJRA_Incident_R
     pdf.multi_cell(0, 10, summary_text)
     pdf.ln(5)
 
-    # Section 2: Risk Indicators (Table)
+    # Section 2: Actuarial Risk Reduction (NEW)
     pdf.set_font('Arial', 'B', 12)
-    pdf.cell(0, 10, '2. DETECTED RISK INDICATORS', 0, 1, 'L')
+    pdf.cell(0, 10, '2. ACTUARIAL RISK REDUCTION SUMMARY', 0, 1, 'L')
+    pdf.set_font('Arial', '', 11)
+    actuarial_text = (
+        "This report demonstrates proactive risk controls active in this organization, including "
+        "Multi-Factor Vendor Verification, Real-time Anomaly Detection, and Automated Vulnerability Patching. "
+        "Presenting this evidence to cyber insurance underwriters may qualify this organization "
+        "for reduced premiums and expedited claims processing."
+    )
+    pdf.multi_cell(0, 10, actuarial_text)
+    pdf.ln(5)
+
+    # Section 3: Risk Indicators (Table)
+    pdf.set_font('Arial', 'B', 12)
+    pdf.cell(0, 10, '3. DETECTED RISK INDICATORS', 0, 1, 'L')
     pdf.set_font('Arial', '', 11)
     for alert in heuristic_results['alerts']:
         pdf.cell(0, 8, f"- [ALERT]: {alert}", 0, 1, 'L')
