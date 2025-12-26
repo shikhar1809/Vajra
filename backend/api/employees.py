@@ -71,16 +71,112 @@ def get_employee_list():
         
     return employees
 
-@router.post("/api/v1/employees/{employee_id}/assign-training")
-def assign_remedial_training(employee_id: str):
-    """
-    Action: Assign remedial training to a user.
-    """
-    con = get_db_con()
-    if not con:
-        return {"error": "Database error"}
-    
-    # Update status
     con.execute("UPDATE employees SET training_status = 'Remedial-Required' WHERE id = ?", [employee_id])
     
     return {"status": "success", "message": f"Remedial training assigned to employee {employee_id}"}
+
+# --- VAJRA Guardian Features ---
+
+from api.ai_orchestrator import gemini_orchestrator
+import sentinel_engine
+
+class PhishingSimulation(BaseModel):
+    industry: str
+    target_email: str
+    difficulty: str # "Easy", "Hard"
+
+@router.post("/api/v1/employees/phish-tank/simulate")
+def simulate_phishing_attack(sim: PhishingSimulation):
+    """
+    AI Generator: Creates a targeted phishing campaign.
+    """
+    # 1. Generate Email Content via Gemini
+    email_content = gemini_orchestrator.generate_phishing_email(sim.industry, sim.difficulty)
+    
+    return {
+        "status": "Simulation Sent",
+        "target": sim.target_email,
+        "email_preview": email_content
+    }
+
+@router.post("/api/v1/employees/phish-tank/click")
+def simulate_phishing_click(employee_id: str):
+    """
+    Action: Simulates a user clicking the bad link.
+    Returns: "Security Moment" coaching.
+    """
+    # 1. Update DB stats
+    con = get_db_con()
+    employee_name = "Employee"
+    if con:
+        con.execute("UPDATE employees SET last_phishing_test_result = 'Clicked' WHERE id = ?", [employee_id])
+        res = con.execute("SELECT name FROM employees WHERE id = ?", [employee_id]).fetchone()
+        if res: employee_name = res[0]
+    
+    # 2. Get Coaching from AI
+    coaching = gemini_orchestrator.generate_security_moment("suspect_link", employee_id)
+    micro_learning = gemini_orchestrator.get_micro_learning_content(employee_name, "Phishing Link Clicked")
+    
+    # Merge for frontend
+    coaching["micro_learning_text"] = micro_learning
+    
+    return coaching
+
+@router.get("/api/v1/employees/credential-sentinel")
+def check_credential_leaks():
+    """
+    Credential Sentinel: Checks for dark web leaks.
+    """
+    con = get_db_con()
+    if not con: return {"status": "Error", "leaks_found": 0, "details": []}
+    
+    # 1. Get all employee emails
+    res = con.execute("SELECT email FROM employees").fetchall()
+    emails = [row[0] for row in res]
+    
+    # 2. Run Sentinel Engine
+    sentinel_results = sentinel_engine.check_employee_leaks(emails)
+    
+    # Filter only leaks for the frontend alert view
+    leaks_only = [r for r in sentinel_results if r['status'] != 'CLEAN']
+    
+    return {"status": "Scan Complete", "leaks_found": len(leaks_only), "details": leaks_only}
+
+class PasswordCheck(BaseModel):
+    password: str
+
+@router.post("/api/v1/employees/sentinel/check-password")
+def check_password_strength(req: PasswordCheck):
+    """
+    Real-World HIBP Check: Checks if a password has been compromised.
+    """
+    result = sentinel_engine.check_real_credential_leak(req.password)
+    return result
+
+@router.get("/api/v1/employees/identity-pulse")
+def check_identity_pulse():
+    """
+    Identity Pulse: Detects 'Impossible Travel'.
+    """
+    con = get_db_con()
+    if not con: return []
+    
+    # In a real app, we compare current IP geo vs last login geo.
+    # Here we just select the ones we seeded with weird locations.
+    
+    res = con.execute("SELECT id, name, last_login_ip, last_login_location FROM employees").fetchall()
+    
+    alerts = []
+    for row in res:
+        # Mock Logic: If location is NOT 'USA' or 'UK', trigger alert
+        loc = row[3]
+        if "Russia" in loc or "China" in loc:
+             alerts.append({
+                 "employee_id": row[0],
+                 "name": row[1],
+                 "alert_type": "Impossible Travel",
+                 "details": f"Login detected in {loc} (IP: {row[2]})",
+                 "action_taken": "MFA Challenge Triggered"
+             })
+             
+    return alerts

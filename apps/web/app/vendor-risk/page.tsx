@@ -40,14 +40,14 @@ export default function VendorRiskPage() {
     };
 
     return (
-        <div className="p-8 h-full overflow-y-auto">
-            <header className="mb-8">
-                <h1 className="text-3xl font-bold text-white tracking-tight">Vendor Risk & Financial Intelligence</h1>
+        <div className="p-8 h-full overflow-y-auto space-y-8">
+            <header>
+                <h1 className="text-3xl font-bold text-white tracking-tight">Smart Invoice Audit</h1>
                 <p className="text-slate-400 mt-1">Autonomous Vendor Onboarding & Fraud Detection</p>
             </header>
 
             {/* AI Bill Analysis Zone */}
-            <Card className="bg-slate-900 border-slate-800 mb-8 overflow-hidden relative">
+            <Card className="bg-slate-900 border-slate-800 overflow-hidden relative">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 to-purple-600"></div>
                 <CardHeader>
                     <CardTitle className="text-white flex items-center gap-2">
@@ -172,17 +172,118 @@ export default function VendorRiskPage() {
                 </CardContent>
             </Card>
 
-            {/* Vendor List (Placeholder for now, but matches "Relationship Map" requirement functionally) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card className="bg-slate-900 border-slate-800">
-                    <CardHeader><CardTitle className="text-base text-slate-200">Vendor Relationship Map</CardTitle></CardHeader>
-                    <CardContent>
-                        <div className="h-48 flex items-center justify-center border border-dashed border-slate-700 rounded-lg text-slate-600 text-sm">
-                            <Building2 className="w-6 h-6 mr-2" /> Interactive Graph Visualization
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
+            {/* Feature 6: Vendor Risk Intelligence (Live OSINT) */}
+            <VendorIntelCard />
         </div>
+    );
+}
+
+function VendorIntelCard() {
+    const [domain, setDomain] = useState("");
+    const [intel, setIntel] = useState<any>(null);
+    const [scanning, setScanning] = useState(false);
+
+    const runScan = async () => {
+        if (!domain) return;
+        setScanning(true);
+        try {
+            const res = await fetch(`http://localhost:8000/api/v1/vendor-intel?domain=${domain}`);
+            const data = await res.json();
+            setIntel(data);
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setScanning(false);
+        }
+    };
+
+    return (
+        <Card className="bg-slate-900 border-slate-800">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-emerald-500"></div>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-white">
+                    <Building2 className="w-5 h-5 text-green-500" />
+                    Vendor Risk Intelligence (Live OSINT)
+                </CardTitle>
+            </CardHeader>
+            <CardContent>
+                <div className="flex gap-4 mb-6">
+                    <div className="flex-1">
+                        <input
+                            type="text"
+                            placeholder="Enter Vendor Domain (e.g. stripe.com, google.com)"
+                            className="w-full bg-slate-950 border border-slate-800 rounded-md px-4 py-2 text-slate-200 focus:outline-none focus:border-green-500 transition-colors"
+                            value={domain}
+                            onChange={(e) => setDomain(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && runScan()}
+                        />
+                    </div>
+                    <Button
+                        onClick={runScan}
+                        disabled={scanning || !domain}
+                        className={clsx(
+                            "min-w-[140px] font-medium transition-all",
+                            scanning ? "bg-slate-800 text-slate-400" : "bg-green-600 hover:bg-green-700 text-white"
+                        )}
+                    >
+                        {scanning ? "Scanning..." : "Run OSINT Scan"}
+                    </Button>
+                </div>
+
+                {/* Scan Results */}
+                {intel && (
+                    <div className="animate-in fade-in slide-in-from-top-4 duration-500 space-y-6">
+                        {/* Score Header */}
+                        <div className="flex justify-between items-center bg-slate-950 p-5 rounded-lg border border-slate-800/50">
+                            <div>
+                                <h4 className="text-slate-400 text-sm font-bold uppercase tracking-wide">Infrastructure Trust Score</h4>
+                                <div className="text-3xl font-bold text-white mt-1">{intel.risk_score}/100</div>
+                            </div>
+                            <div className="text-right">
+                                <Badge className={clsx(
+                                    "text-lg px-3 py-1",
+                                    intel.risk_score > 80 ? "bg-green-500/10 text-green-400 border-green-500/20" :
+                                        intel.risk_score > 50 ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/20" :
+                                            "bg-red-500/10 text-red-400 border-red-500/20"
+                                )}>
+                                    {intel.risk_score > 80 ? "VETTED PARTNER" : intel.risk_score > 50 ? "USE CAUTION" : "HIGH RISK"}
+                                </Badge>
+                            </div>
+                        </div>
+
+                        {/* Technical Checks Table */}
+                        <div className="border border-slate-800 rounded-lg overflow-hidden">
+                            <table className="w-full text-left text-sm">
+                                <thead className="bg-slate-950 text-slate-400 font-medium">
+                                    <tr>
+                                        <th className="p-3">Security Control</th>
+                                        <th className="p-3">Status</th>
+                                        <th className="p-3">Technical Details</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-800 bg-slate-900/50">
+                                    {intel.checks.map((check: any, i: number) => (
+                                        <tr key={i} className="hover:bg-slate-800/50 transition-colors">
+                                            <td className="p-3 text-slate-200 font-medium">{check.test}</td>
+                                            <td className="p-3">
+                                                <Badge variant="outline" className={clsx(
+                                                    "border-0",
+                                                    check.result === "PASS" ? "bg-green-500/10 text-green-400" :
+                                                        check.result === "WEAK" ? "bg-yellow-500/10 text-yellow-400" :
+                                                            "bg-red-500/10 text-red-500"
+                                                )}>
+                                                    {check.result}
+                                                </Badge>
+                                            </td>
+                                            <td className="p-3 text-slate-400 font-mono text-xs">{check.details || "Verified standard protocol"}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
+            </CardContent>
+        </Card>
     );
 }

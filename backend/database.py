@@ -76,7 +76,9 @@ def init_db():
             risk_score INTEGER, -- 0-100
             training_status VARCHAR, -- 'Up-to-Date', 'Overdue', 'Remedial-Required'
             last_phishing_test_result VARCHAR, -- 'Passed', 'Clicked', 'Submitted-Creds'
-            failed_login_count_24h INTEGER
+            failed_login_count_24h INTEGER,
+            last_login_ip VARCHAR,
+            last_login_location VARCHAR
         );
 
         CREATE TABLE IF NOT EXISTS compliance_controls (
@@ -95,11 +97,11 @@ def init_db():
         print("Seeding v3.0 SMB Employee data...")
         con.execute("""
             INSERT OR IGNORE INTO employees VALUES
-            ('e1', 'alice@company.com', 'Alice Smith', 'Finance', 15, 'Up-to-Date', 'Passed', 0),
-            ('e2', 'bob@company.com', 'Bob Jones', 'Engineering', 95, 'Remedial-Required', 'Submitted-Creds', 3),
-            ('e3', 'charlie@company.com', 'Charlie Day', 'Sales', 65, 'Overdue', 'Clicked', 1),
-            ('e4', 'dave@company.com', 'Dave Grohl', 'Engineering', 10, 'Up-to-Date', 'Passed', 0),
-            ('e5', 'eve@company.com', 'Eve Polastri', 'HR', 45, 'Overdue', 'Passed', 0);
+            ('e1', 'alice@company.com', 'Alice Smith', 'Finance', 15, 'Up-to-Date', 'Passed', 0, '192.168.1.10', 'New York, USA'),
+            ('e2', 'bob@company.com', 'Bob Jones', 'Engineering', 95, 'Remedial-Required', 'Submitted-Creds', 3, '45.33.22.11', 'Moscow, Russia'),
+            ('e3', 'charlie@company.com', 'Charlie Day', 'Sales', 65, 'Overdue', 'Clicked', 1, '192.168.1.12', 'New York, USA'),
+            ('e4', 'dave@company.com', 'Dave Grohl', 'Engineering', 10, 'Up-to-Date', 'Passed', 0, '192.168.1.13', 'Seattle, USA'),
+            ('e5', 'eve@company.com', 'Eve Polastri', 'HR', 45, 'Overdue', 'Passed', 0, '192.168.1.14', 'London, UK');
         """)
 
     # Seed v3.0 SMB Compliance data
@@ -113,8 +115,26 @@ def init_db():
             ('CC6.3', 'SOC2', 'Least Privilege', 'Failing', 'employees', now()),
             ('CC7.1', 'SOC2', 'Vulnerability Management', 'Passing', 'vendors', now()),
             ('ART.32', 'GDPR', 'Security of Processing', 'Passing', 'vendors', now()),
+            ('CC7.1', 'SOC2', 'Vulnerability Management', 'Passing', 'vendors', now()),
+            ('ART.32', 'GDPR', 'Security of Processing', 'Passing', 'vendors', now()),
             ('ART.33', 'GDPR', 'Breach Notification', 'At-Risk', 'events', now());
         """)
+
+    # --- AUTO-MIGRATION FOR EXISTING DBS ---
+    try:
+        con.execute("ALTER TABLE employees ADD COLUMN last_login_ip VARCHAR DEFAULT '127.0.0.1'")
+        print("✅ Migrated: Added last_login_ip")
+    except: pass
+    
+    try:
+        con.execute("ALTER TABLE employees ADD COLUMN last_login_location VARCHAR DEFAULT 'Unknown'")
+        print("✅ Migrated: Added last_login_location")
+        # Update seeds for demo if we just added the column
+        con.execute("UPDATE employees SET last_login_location = 'New York, USA' WHERE id = 'e1'")
+        con.execute("UPDATE employees SET last_login_location = 'Moscow, Russia' WHERE id = 'e2'")
+        con.execute("UPDATE employees SET last_login_location = 'New York, USA' WHERE id = 'e3'")
+    except: pass
+    # ---------------------------------------
 
     # Seed Vendors
     result = con.execute("SELECT count(*) FROM vendors").fetchone()

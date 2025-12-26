@@ -93,6 +93,119 @@ The organization's security posture is currently evaluated as **"""
 
         return report
 
+    def generate_gap_analysis(self, profile: dict, context: dict) -> dict:
+        """
+        Virtual CISO: Analyzes company profile and security logs to generate a roadmap.
+        """
+        # 1. Construct the Prompt
+        # In a real scenario, this would go to Gemini.
+        # For the hackathon/demo, we simulate the *response* of that prompt based on inputs.
+        
+        industry = profile.get("industry", "Unknown")
+        region = profile.get("region", "Unknown")
+        
+        completed_actions = []
+        if context.get("last_scan"): completed_actions.append("Code Vulnerability Scanning")
+        if context.get("vendor_verification"): completed_actions.append("Vendor Identity Integrity")
+        if context.get("ddos_protection"): completed_actions.append("Real-time Traffic Monitoring")
+        
+        # 2. Simulated AI Logic (The "Virtual CISO")
+        gaps = []
+        narrative = ""
+        score = 65 # Base Score
+        
+        if "health" in industry.lower():
+            narrative = f"As a {industry} provider in {region}, patient data privacy is your #1 risk. You are doing well with {', '.join(completed_actions) if completed_actions else 'basic security'}, but you are missing critical HIPAA safeguards."
+            gaps.append({"regulation": "HIPAA", "gap": "Patient Data Encryption", "impact": "High", "fix_action": "Enable DB Encryption"})
+            score = 70
+        elif "fin" in industry.lower():
+            narrative = f"For the {industry} sector, financial integrity is paramount. While you have {', '.join(completed_actions)}, PCI-DSS requires stricter network segmentation which is currently not detected."
+            gaps.append({"regulation": "PCI-DSS", "gap": "Cardholder Data Isolation", "impact": "Critical", "fix_action": "Segment Network (VLAN)"})
+            score = 60
+        else:
+             narrative = f"Operating in {region} requires strict data controls. Your current posture covers {', '.join(completed_actions)}, but you are exposed to general data breach liability."
+             gaps.append({"regulation": "General Security", "gap": "MFA for Admin Access", "impact": "High", "fix_action": "Enforce MFA Policy"})
+
+        if region.lower() in ["eu", "europe"]:
+             gaps.append({"regulation": "GDPR", "gap": "Cookie Consent Log", "impact": "Medium", "fix_action": "Deploy Consent Banner"})
+        
+        return {
+            "status": "Analysis Complete",
+            "health_score": score,
+            "narrative": narrative,
+            "gaps": gaps
+        }
+
+        return {
+            "status": "Analysis Complete",
+            "health_score": score,
+            "narrative": narrative,
+            "gaps": gaps
+        }
+
+    def generate_phishing_email(self, industry: str, difficulty: str) -> dict:
+        """
+        AI Phish-Tank: Generates targeted phishing content.
+        """
+        # Mocking Gemini's creativity
+        subject = "Urgent: Invoice Overdue"
+        body = "Please review the attached invoice immediately."
+        sender = "billing@internal-finance-dept.com"
+        
+        if "fin" in industry.lower():
+            subject = "SWIFT Transfer Confirmation Pending"
+            body = "A pending wire transfer of $45,000 requires your CEO approval. Login to the portal to authorize."
+            sender = "swift-secure@citibank-support.com"
+        elif "health" in industry.lower():
+            subject = "HIPAA Compliance Audit - Action Required"
+            body = "Your recent patient access logs show an anomaly. Please verify your credentials to avoid penalties."
+            sender = "audit@hhs-gov-portal.com"
+            
+        return {
+            "created_at": "Today",
+            "sender": sender,
+            "subject": subject,
+            "body_preview": body,
+            "difficulty": difficulty
+        }
+
+    def generate_security_moment(self, trigger: str, employee_id: str) -> dict:
+        """
+        Employee Coach: "Security Moment" interactive coaching.
+        """
+        if trigger == "suspect_link":
+            return {
+                "coach_name": "VAJRA Coach",
+                "message": "Whoops! You clicked a simulated phishing link. Don't worry, you aren't in trouble.",
+                "tip": "Always check the sender's domain. 'hhs-gov-portal.com' is not a real government site.",
+                "rule": "The One Rule: If it asks for a login, check the URL twice."
+            }
+            
+        return {"message": "Stay safe!"}
+
+        return {"message": "Stay safe!"}
+
+    def get_micro_learning_content(self, employee_name: str, risk_type: str) -> str:
+        """
+        Generates a 30-second 'Security Moment' for the employee.
+        """
+        # Mocking the AI response for the demo to ensure stability and speed
+        
+        if "Dark Web" in risk_type or "Leak" in risk_type:
+             return f"""
+             **Security Moment for {employee_name}**
+             ⚠️ **Risk Detected**: Your email was found in a recent public data breach. This is not your fault, but it is our problem to fix.
+             🛡️ **Action**: Please change your VAJRA Dashboard password immediately.
+             💡 **Pro-Tip**: Use a unique password manager so one leak doesn't compromise all your accounts.
+             """
+        
+        return f"""
+        **Security Moment for {employee_name}**
+        ⚠️ **Alert**: {risk_type} detected.
+        🛡️ **Action**: Review your recent activity logs.
+        💡 **Pro-Tip**: Enable 2FA on all sensitive accounts.
+        """
+
 # Singleton Instance
 gemini_orchestrator = GeminiOrchestrator()
 

@@ -2,6 +2,14 @@ from fastapi import APIRouter
 from database import get_db_con
 
 router = APIRouter()
+from vendor_intel import run_vendor_intelligence
+
+@router.get("/api/v1/vendor-intel")
+def get_vendor_intelligence(domain: str):
+    """
+    Live OSINT Intelligence Scan for Vendor.
+    """
+    return run_vendor_intelligence(domain)
 
 @router.get("/api/v1/risks/scores")
 def get_risk_scores():
