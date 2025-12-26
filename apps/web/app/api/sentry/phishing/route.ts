@@ -4,10 +4,11 @@ import { phishingDetector } from '@/lib/sentry/phishing-detector';
 import { validateData, phishingCheckSchema } from '@/lib/validation';
 import { rateLimit, rateLimitResponse } from '@/lib/rate-limit';
 
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+export const dynamic = 'force-dynamic';
+
+const supabase = (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY)
+    ? createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
+    : null;
 
 export async function POST(request: Request) {
     try {
@@ -36,21 +37,23 @@ export async function POST(request: Request) {
         const result = await phishingDetector.checkURL(url);
 
         // Save to database
-        const { data: savedCheck, error: dbError } = await supabase
-            .from('phishing_checks')
-            .insert({
-                url,
-                is_safe: result.isSafe,
-                threat_level: result.threatLevel,
-                confidence: result.confidence,
-                threats: result.threats,
-                recommendations: result.recommendations,
-            })
-            .select()
-            .single();
+        if (supabase) {
+            const { data: savedCheck, error: dbError } = await supabase
+                .from('phishing_checks')
+                .insert({
+                    url,
+                    is_safe: result.isSafe,
+                    threat_level: result.threatLevel,
+                    confidence: result.confidence,
+                    threats: result.threats,
+                    recommendations: result.recommendations,
+                })
+                .select()
+                .single();
 
-        if (dbError) {
-            console.error('Error saving phishing check:', dbError);
+            if (dbError) {
+                console.error('Error saving phishing check:', dbError);
+            }
         }
 
         return NextResponse.json({
@@ -69,6 +72,8 @@ export async function POST(request: Request) {
 // GET - Fetch recent phishing checks
 export async function GET() {
     try {
+        if (!supabase) return NextResponse.json({ success: true, data: { checks: [] } });
+
         const { data: checks, error } = await supabase
             .from('phishing_checks')
             .select('*')

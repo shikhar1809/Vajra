@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { calculateAnalytics } from '@/lib/shield/analytics'
 import { rateLimit } from '@/lib/security/rate-limit'
-import { getSupabaseClient } from '@/lib/supabase/client'
+import { supabaseAdmin as supabase } from '@/lib/supabase/server'
 
 /**
  * Traffic Analytics API
@@ -30,7 +30,6 @@ export async function GET(request: NextRequest) {
         }
 
         // Verify user has access to workspace
-        const supabase = getSupabaseClient()
         const { data: workspace, error } = await supabase
             .from('workspaces')
             .select('id')

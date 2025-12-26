@@ -6,10 +6,9 @@
 import { createClient } from '@supabase/supabase-js';
 import { ThreatFeedAggregator, MalwareHash, MaliciousURL, C2Server } from './threat-feeds';
 
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+const supabase = (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY)
+    ? createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
+    : ({} as any);
 
 export interface UpdateResult {
     source: string;
@@ -83,6 +82,8 @@ export class ThreatIntelligenceUpdater {
 
         try {
             for (const hash of hashes) {
+                if (!supabase) continue;
+
                 const { data: existing } = await supabase
                     .from('malware_hashes')
                     .select('hash')
@@ -142,6 +143,8 @@ export class ThreatIntelligenceUpdater {
 
         try {
             for (const urlData of urls) {
+                if (!supabase) continue;
+
                 const { data: existing } = await supabase
                     .from('malicious_urls')
                     .select('url')
@@ -196,6 +199,8 @@ export class ThreatIntelligenceUpdater {
 
         try {
             for (const server of servers) {
+                if (!supabase) continue;
+
                 const { data: existing } = await supabase
                     .from('c2_servers')
                     .select('ip_address')
@@ -245,6 +250,8 @@ export class ThreatIntelligenceUpdater {
      * Log update results to database
      */
     private async logUpdateResults(results: UpdateResult[]): Promise<void> {
+        if (!supabase) return;
+
         for (const result of results) {
             await supabase.from('threat_feed_updates').insert({
                 source: result.source,
@@ -262,6 +269,8 @@ export class ThreatIntelligenceUpdater {
     async getUpdateStats(days: number = 7): Promise<any> {
         const since = new Date();
         since.setDate(since.getDate() - days);
+
+        if (!supabase) return null;
 
         const { data, error } = await supabase
             .from('threat_feed_updates')

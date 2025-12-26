@@ -1,4 +1,4 @@
-import { getSupabaseClient } from '@/lib/supabase/client'
+import { supabaseAdmin as supabase } from '@/lib/supabase/server'
 import type { ActivityLog } from '@/types/modules'
 
 interface LogActivityParams {
@@ -11,7 +11,7 @@ interface LogActivityParams {
 }
 
 export async function logActivity(params: LogActivityParams) {
-    const supabase = getSupabaseClient()
+    // const supabase = getSupabaseClient()
 
     try {
         const { data: { user } } = await supabase.auth.getUser()
@@ -34,7 +34,7 @@ export async function logActivity(params: LogActivityParams) {
 }
 
 export async function getActivityLogs(workspaceId: string, limit = 50) {
-    const supabase = getSupabaseClient()
+    // const supabase = getSupabaseClient()
 
     const { data, error } = await supabase
         .from('activity_logs')

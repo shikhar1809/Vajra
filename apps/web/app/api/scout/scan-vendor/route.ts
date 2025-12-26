@@ -7,6 +7,8 @@ import { NextResponse } from 'next/server';
 import { vendorRiskScorer } from '@/lib/scout/enhanced-risk-scoring';
 import { vendorMonitor } from '@/lib/scout/continuous-monitor';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: Request) {
     try {
         const body = await request.json();

@@ -1,0 +1,8 @@
+fastapi
+uvicorn[standard]
+duckdb
+google-generativeai
+sse-starlette
+python-multipart
+python-dotenv
+pydantic

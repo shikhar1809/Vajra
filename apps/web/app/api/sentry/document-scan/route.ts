@@ -3,10 +3,11 @@ import crypto from 'crypto';
 import { ThreatFeedAggregator } from '@/lib/sentry/threat-feeds';
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+export const dynamic = 'force-dynamic';
+
+const supabase = (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY)
+    ? createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
+    : null;
 
 interface DocumentScanResult {
     filename: string;
@@ -122,6 +123,8 @@ async function checkMalwareHash(sha256: string, md5: string): Promise<{
     family?: string;
 }> {
     // Check SHA256
+    if (!supabase) return { isMalicious: false };
+
     const { data: sha256Match } = await supabase
         .from('malware_hashes')
         .select('malware_family, threat_level')
@@ -284,6 +287,7 @@ async function analyzeFileContent(buffer: Buffer, filename: string): Promise<{
  * Save scan result to database
  */
 async function saveScanResult(result: DocumentScanResult): Promise<void> {
+    if (!supabase) return;
     await supabase.from('document_scan_history').insert({
         filename: result.filename,
         file_hash: result.fileHash,

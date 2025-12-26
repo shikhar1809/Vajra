@@ -4,9 +4,12 @@ import { ShieldConfig, ShieldRule, evaluateRequest } from './shield-evaluator';
 export { evaluateRequest }; // Re-export for middleware
 
 // Access Supabase directly
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+const supabase = (supabaseUrl && supabaseKey)
+    ? createClient(supabaseUrl, supabaseKey)
+    : ({} as any);
 
 // In-Memory Fallback (Cache)
 let cachedConfig: ShieldConfig = {
@@ -21,6 +24,8 @@ let cachedRules: ShieldRule[] = [
 
 export async function getShieldConfig(): Promise<ShieldConfig> {
     try {
+        if (!supabase) return cachedConfig;
+
         const { data, error } = await supabase
             .from('shield_config')
             .select('*')
@@ -49,6 +54,8 @@ export async function updateShieldConfig(newConfig: Partial<ShieldConfig>) {
     try {
         // Upsert logic (assuming single row for workspace, or just updating the first one)
         // For this demo we'll try to update the first row found
+        if (!supabase) return;
+
         const { error } = await supabase
             .from('shield_config')
             .update({
@@ -68,6 +75,8 @@ export async function updateShieldConfig(newConfig: Partial<ShieldConfig>) {
 
 export async function getShieldRules(): Promise<ShieldRule[]> {
     try {
+        if (!supabase) return cachedRules;
+
         const { data, error } = await supabase
             .from('shield_rules')
             .select('*')
@@ -90,13 +99,15 @@ export async function getShieldRules(): Promise<ShieldRule[]> {
 export async function addShieldRule(rule: ShieldRule) {
     cachedRules.push(rule);
     try {
-        await supabase.from('shield_rules').insert({
-            name: rule.name,
-            condition_type: rule.conditionType,
-            condition_value: rule.conditionValue,
-            action: rule.action,
-            is_active: true
-        });
+        if (supabase) {
+            await supabase.from('shield_rules').insert({
+                name: rule.name,
+                condition_type: rule.conditionType,
+                condition_value: rule.conditionValue,
+                action: rule.action,
+                is_active: true
+            });
+        }
     } catch (e) {
         console.warn('Failed to persist rule');
     }

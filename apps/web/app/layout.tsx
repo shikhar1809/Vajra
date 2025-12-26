@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
+import GlobalLayout from "@/components/GlobalLayout";
 import { Inter } from "next/font/google";
 import { Suspense } from "react";
 import "./globals.css";
-import PillNav from "@/components/PillNav";
-import ClickSpark from "@/components/effects/ClickSpark";
 import { LoadingProvider } from "@/contexts/LoadingContext";
-
+// LoadingProvider already imported on line 5
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -18,12 +17,6 @@ export const metadata: Metadata = {
     },
 };
 
-const navItems = [
-    { label: "Home", href: "/" },
-    { label: "About Us", href: "/about" },
-    { label: "My Workspace", href: "/workspace" }
-];
-
 export default function RootLayout({
     children,
 }: Readonly<{
@@ -31,28 +24,12 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en" suppressHydrationWarning>
-            <body className={inter.className} suppressHydrationWarning>
+            <body className={`${inter.className} bg-slate-950 text-slate-200 overflow-hidden`} suppressHydrationWarning>
                 <Suspense fallback={null}>
                     <LoadingProvider>
-                        <ClickSpark
-                            sparkColor="#ef4444"
-                            sparkSize={12}
-                            sparkRadius={20}
-                            sparkCount={8}
-                            duration={500}
-                        >
-                            <PillNav
-                                logo="/logo.png"
-                                logoAlt="Vajra"
-                                items={navItems}
-                                baseColor="#0f172a"
-                                pillColor="#ef4444"
-                                hoveredPillTextColor="#ffffff"
-                                pillTextColor="#ffffff"
-                                initialLoadAnimation={true}
-                            />
+                        <GlobalLayout>
                             {children}
-                        </ClickSpark>
+                        </GlobalLayout>
                     </LoadingProvider>
                 </Suspense>
             </body>

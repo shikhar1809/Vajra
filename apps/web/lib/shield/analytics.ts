@@ -1,4 +1,4 @@
-import { getSupabaseClient } from '@/lib/supabase/client'
+import { supabaseAdmin as supabase } from '@/lib/supabase/server'
 
 /**
  * Traffic Analytics Calculator
@@ -25,7 +25,7 @@ export async function calculateAnalytics(
     workspaceId: string,
     timeRange: '1h' | '24h' | '7d' | '30d' = '24h'
 ): Promise<TrafficAnalytics> {
-    const supabase = getSupabaseClient()
+    // const supabase = getSupabaseClient() // Removed local init
 
     // Calculate time window
     const now = new Date()

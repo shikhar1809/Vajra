@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { sendAlert } from '@/lib/shield/alerts'
 import { rateLimit } from '@/lib/security/rate-limit'
-import { getSupabaseClient } from '@/lib/supabase/client'
+import { supabaseAdmin as supabase } from '@/lib/supabase/server'
 
 /**
  * Alerts API
@@ -41,7 +41,6 @@ export async function POST(request: NextRequest) {
         })
 
         // Log alert to database
-        const supabase = getSupabaseClient()
         await supabase.from('alert_logs').insert({
             workspace_id: workspaceId,
             alert_type: alertType,
@@ -87,7 +86,6 @@ export async function GET(request: NextRequest) {
         }
 
         // Get recent alerts
-        const supabase = getSupabaseClient()
         const { data: alerts, error } = await supabase
             .from('alert_logs')
             .select('*')

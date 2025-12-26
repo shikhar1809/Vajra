@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { rateLimit } from '@/lib/security/rate-limit'
-import { getSupabaseClient } from '@/lib/supabase/client'
+import { supabaseAdmin as supabase } from '@/lib/supabase/server'
 
 /**
  * Blocked IPs API
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
             )
         }
 
-        const supabase = getSupabaseClient()
+
         const { data: blockedIPs, error } = await supabase
             .from('blocked_ips')
             .select('*')
@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
             )
         }
 
-        const supabase = getSupabaseClient()
+
         const { data, error } = await supabase
             .from('blocked_ips')
             .insert({
@@ -128,7 +128,7 @@ export async function DELETE(request: NextRequest) {
             )
         }
 
-        const supabase = getSupabaseClient()
+
         const { error } = await supabase
             .from('blocked_ips')
             .delete()

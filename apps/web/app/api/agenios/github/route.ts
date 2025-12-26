@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+export const dynamic = 'force-dynamic';
+
+// Initialize safely or inside handler
+const supabase = (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY)
+    ? createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
+    : null;
 
 interface GitHubRepo {
     owner: string;
@@ -47,9 +49,9 @@ export async function POST(request: Request) {
 
         console.log(`[Agenios] Scanning repository: ${owner}/${repo}`);
 
-        // Simulate scanning (in production, use actual GitHub API + code analysis)
+        // Simulate scanning
         const vulnerabilities = VULNERABILITY_PATTERNS
-            .filter(() => Math.random() > 0.6) // 40% chance of each vuln
+            .filter(() => Math.random() > 0.6)
             .map((vuln, index) => ({
                 id: `vuln-${index}`,
                 type: vuln.type,
@@ -68,35 +70,41 @@ export async function POST(request: Request) {
 
         const securityScore = Math.max(0, 100 - (criticalCount * 25 + highCount * 15 + mediumCount * 5));
 
-        // Save scan to database
-        const { data: scan, error: scanError } = await supabase
-            .from('code_scans')
-            .insert({
-                scan_type: 'full',
-                project_path: repoUrl,
-                security_score: securityScore,
-                total_files: Math.floor(Math.random() * 100) + 20,
-                files_scanned: Math.floor(Math.random() * 100) + 20,
-                total_issues: vulnerabilities.length,
-                critical_count: criticalCount,
-                high_count: highCount,
-                medium_count: mediumCount,
-                low_count: lowCount,
-                vulnerabilities: vulnerabilities,
-                recommendations: [
-                    'Enable dependency scanning',
-                    'Add security linting to CI/CD',
-                    'Implement input validation',
-                    'Use parameterized queries',
-                ],
-                duration_ms: Math.floor(Math.random() * 5000) + 1000,
-                triggered_by: 'manual',
-            })
-            .select()
-            .single();
+        let scanId: string | undefined;
 
-        if (scanError) {
-            console.error('Error saving scan:', scanError);
+        // Save scan to database
+        if (supabase) {
+            const { data: scan, error: scanError } = await supabase
+                .from('code_scans')
+                .insert({
+                    scan_type: 'full',
+                    project_path: repoUrl,
+                    security_score: securityScore,
+                    total_files: Math.floor(Math.random() * 100) + 20,
+                    files_scanned: Math.floor(Math.random() * 100) + 20,
+                    total_issues: vulnerabilities.length,
+                    critical_count: criticalCount,
+                    high_count: highCount,
+                    medium_count: mediumCount,
+                    low_count: lowCount,
+                    vulnerabilities: vulnerabilities,
+                    recommendations: [
+                        'Enable dependency scanning',
+                        'Add security linting to CI/CD',
+                        'Implement input validation',
+                        'Use parameterized queries',
+                    ],
+                    duration_ms: Math.floor(Math.random() * 5000) + 1000,
+                    triggered_by: 'manual',
+                })
+                .select()
+                .single();
+
+            if (scanError) {
+                console.error('Error saving scan:', scanError);
+            } else {
+                scanId = scan?.id;
+            }
         }
 
         return NextResponse.json({
@@ -112,7 +120,7 @@ export async function POST(request: Request) {
                     medium: mediumCount,
                     low: lowCount,
                 },
-                scanId: scan?.id,
+                scanId: scanId,
             },
         });
     } catch (error) {
@@ -127,6 +135,13 @@ export async function POST(request: Request) {
 // GET - Get recent scans
 export async function GET() {
     try {
+        if (!supabase) {
+            return NextResponse.json({
+                success: true,
+                data: { scans: [] }
+            });
+        }
+
         const { data: scans, error } = await supabase
             .from('code_scans')
             .select('*')

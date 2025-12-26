@@ -1,13 +1,16 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+export const dynamic = 'force-dynamic';
+
+const supabase = (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY)
+    ? createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
+    : null;
 
 export async function GET() {
     try {
+        if (!supabase) return NextResponse.json({ success: true, data: { summary: {}, trafficLogs: [] } });
+
         // Get traffic logs from last 24 hours
         const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
@@ -90,6 +93,8 @@ export async function GET() {
 // POST endpoint to log new traffic
 export async function POST(request: Request) {
     try {
+        if (!supabase) return NextResponse.json({ success: false, error: 'Database not connected' }, { status: 503 });
+
         const body = await request.json();
         const { ip_address, user_agent, request_method, request_path, status_code, response_time_ms } = body;
 

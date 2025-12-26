@@ -79,7 +79,7 @@ export default function AboutPage() {
                                         Vajra is built to democratize enterprise-grade cybersecurity. We believe that every organization, regardless of size, deserves access to powerful, easy-to-use security solutions that protect against modern cyber threats.
                                     </p>
                                     <p className="text-lg text-slate-300 leading-relaxed">
-                                        Our platform combines four powerful modules—Shield, Aegis, Scout, and Sentry—into a unified workspace where teams can monitor, detect, and respond to security threats in real-time.
+                                        Our platform combines four powerful modulesΓÇöShield, Aegis, Scout, and SentryΓÇöinto a unified workspace where teams can monitor, detect, and respond to security threats in real-time.
                                     </p>
                                 </div>
                                 <div className="relative">

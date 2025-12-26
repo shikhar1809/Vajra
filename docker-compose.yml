@@ -1,92 +1,49 @@
 version: '3.8'
 
 services:
-  # ---------------------------------------------------------------------------
-  # The Shield Engine (Golang + Coraza)
-  # Acts as the WAF and Reverse Proxy.
-  # ---------------------------------------------------------------------------
-  shield:
+  backend:
     build:
-      context: ./services/shield-engine
+      context: ./backend
       dockerfile: Dockerfile
-    container_name: vajra-shield
-    ports:
-      - "8080:8080"
-    environment:
-      - PORT=8080
-      - REDIS_ADDR=redis:6379
-      - BRAIN_URL=http://brain:8000
-    depends_on:
-      - redis
-      - brain
-    restart: always
-
-  # ---------------------------------------------------------------------------
-  # The Brain Engine (Python FastAPI)
-  # Handles heavy scanning and intelligence tasks.
-  # ---------------------------------------------------------------------------
-  brain:
-    build:
-      context: ./services/brain-worker
-      dockerfile: Dockerfile
-    container_name: vajra-brain
     ports:
       - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - vajra_data:/app/data # Persistent DuckDB storage
     environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - DATABASE_PATH=/app/data/vajra_prod.db
+      - HOST=0.0.0.0
       - PORT=8000
-      - REDIS_ADDR=redis:6379
-      - POSTGRES_URL=postgresql://postgres:postgres@postgres:5432/vajra
-    depends_on:
-        - postgres
-        - redis
-    restart: always
+    restart: unless-stopped
 
-  # ---------------------------------------------------------------------------
-  # Frontend (Next.js 15)
-  # The User Dashboard.
-  # ---------------------------------------------------------------------------
   web:
     build:
       context: ./apps/web
       dockerfile: Dockerfile
-    container_name: vajra-web
+      args:
+        - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL:-https://trhfokxznsqlfiskhmxe.supabase.co}
+        - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+        - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+        - NODE_ENV=production
     ports:
       - "3000:3000"
     environment:
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+      - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL:-https://trhfokxznsqlfiskhmxe.supabase.co}
+      - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
       - NODE_ENV=production
-      # In docker, we can access services via names, but client-side calls 
-      # from the browser need to hit localhost or the public IP.
-      # For server-side calls:
-      - INTERNAL_SHIELD_URL=http://shield:8080
-      - INTERNAL_BRAIN_URL=http://brain:8000
-      # For client-side calls (if any direct):
-      - NEXT_PUBLIC_API_URL=http://localhost:8080
     depends_on:
-      - shield
-    restart: always
+      - backend
+    restart: unless-stopped
+    networks:
+      - vajra-net
 
-  # ---------------------------------------------------------------------------
-  # Infrastructure Services
-  # ---------------------------------------------------------------------------
-  redis:
-    image: redis:alpine
-    container_name: vajra-redis
-    ports:
-      - "6379:6379"
-    restart: always
-
-  postgres:
-    image: postgres:15-alpine
-    container_name: vajra-postgres
-    ports:
-      - "5432:5432"
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=vajra
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    restart: always
+networks:
+  vajra-net:
+    driver: bridge
 
 volumes:
-  postgres_data:
+  vajra_data: # Ensures security logs and events aren't lost on restart

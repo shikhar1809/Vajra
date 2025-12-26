@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSupabaseClient } from '@/lib/supabase/client'
+import { supabaseAdmin as supabase } from '@/lib/supabase/server'
 import { rateLimit } from '@/lib/security/rate-limit'
 import {
     generateCSV,
@@ -41,7 +41,6 @@ export async function GET(
         }
 
         const module = params.module
-        const supabase = getSupabaseClient()
 
         let csvData: any
         let filename: string

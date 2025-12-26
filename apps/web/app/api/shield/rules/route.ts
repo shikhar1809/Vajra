@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSupabaseClient } from '@/lib/supabase/client'
+import { supabaseAdmin as supabase } from '@/lib/supabase/server'
 import { rateLimit } from '@/lib/security/rate-limit'
 import type { FirewallRule } from '@/lib/shield/rules-engine'
 
@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: 'Missing workspaceId' }, { status: 400 })
         }
 
-        const supabase = getSupabaseClient()
+
         const { data: rules, error } = await supabase
             .from('firewall_rules')
             .select('*')
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
         }
 
-        const supabase = getSupabaseClient()
+
         const { data, error } = await supabase
             .from('firewall_rules')
             .insert({
@@ -92,7 +92,7 @@ export async function PUT(request: NextRequest) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
         }
 
-        const supabase = getSupabaseClient()
+
         const { data, error } = await supabase
             .from('firewall_rules')
             .update({
@@ -129,7 +129,7 @@ export async function DELETE(request: NextRequest) {
             return NextResponse.json({ error: 'Missing id' }, { status: 400 })
         }
 
-        const supabase = getSupabaseClient()
+
         const { error } = await supabase
             .from('firewall_rules')
             .delete()

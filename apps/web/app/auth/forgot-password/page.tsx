@@ -1,10 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { getSupabaseClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 
-export default function ForgotPasswordPage() {
+function ForgotPasswordContent() {
     const supabase = getSupabaseClient()
     const [email, setEmail] = useState('')
     const [isLoading, setIsLoading] = useState(false)
@@ -121,5 +121,13 @@ export default function ForgotPasswordPage() {
                 </div>
             </div>
         </div>
+    )
+}
+
+export default function ForgotPasswordPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-white">Loading...</div>}>
+            <ForgotPasswordContent />
+        </Suspense>
     )
 }

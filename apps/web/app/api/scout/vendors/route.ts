@@ -1,18 +1,21 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+
+export const dynamic = 'force-dynamic';
 import { vendorScanner } from '@/lib/scout/vendor-scanner';
 import { riskEngine } from '@/lib/scout/risk-scoring';
 import { validateData, vendorScanSchema } from '@/lib/validation';
 import { rateLimit, rateLimitResponse } from '@/lib/rate-limit';
 
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+const supabase = (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY)
+    ? createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
+    : null;
 
 // GET - Fetch all vendors from database
 export async function GET() {
     try {
+        if (!supabase) return NextResponse.json({ success: true, data: { vendors: [] } });
+
         const { data: vendors, error } = await supabase
             .from('vendors')
             .select('*')
@@ -86,22 +89,26 @@ export async function POST(request: Request) {
         const recommendations = vendorScanner.generateRecommendations(scanResult);
 
         // Save vendor to database
-        const { data: vendor, error: vendorError } = await supabase
-            .from('vendors')
-            .upsert({
-                id: vendorId,
-                domain: domain,
-                security_score: scanResult.scores.overall,
-                status: 'active',
-                last_assessment: new Date().toISOString(),
-            }, {
-                onConflict: 'domain'
-            })
-            .select()
-            .single();
+        let vendor;
+        if (supabase) {
+            const { data: v, error: vendorError } = await supabase
+                .from('vendors')
+                .upsert({
+                    id: vendorId,
+                    domain: domain,
+                    security_score: scanResult.scores.overall,
+                    status: 'active',
+                    last_assessment: new Date().toISOString(),
+                }, {
+                    onConflict: 'domain'
+                })
+                .select()
+                .single();
 
-        if (vendorError) {
-            console.error('Error saving vendor:', vendorError);
+            if (vendorError) {
+                console.error('Error saving vendor:', vendorError);
+            }
+            vendor = v;
         }
 
         // Save detailed risk scores

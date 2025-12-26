@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+export const dynamic = 'force-dynamic';
+
+const supabase = (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY)
+    ? createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
+    : null;
 
 // Simulated IP geolocation (in production, use ipapi.co or similar)
 async function getLocationFromIP(ip: string) {
@@ -39,41 +40,43 @@ export async function POST(request: Request) {
         const isWithinGeofence = Math.random() > 0.3; // 70% within geofence
 
         // Save to database (using security_entities table)
-        const { data: entity, error: entityError } = await supabase
-            .from('security_entities')
-            .insert({
-                entity_type: 'employee',
-                name: employeeId,
-                properties: {
-                    last_location: location,
-                    ip_address: ip,
-                    user_agent: userAgent,
-                    within_geofence: isWithinGeofence,
-                    timestamp: new Date().toISOString(),
-                },
-                risk_score: isWithinGeofence ? 0 : 50,
-            })
-            .select()
-            .single();
+        if (supabase) {
+            const { data: entity, error: entityError } = await supabase
+                .from('security_entities')
+                .insert({
+                    entity_type: 'employee',
+                    name: employeeId,
+                    properties: {
+                        last_location: location,
+                        ip_address: ip,
+                        user_agent: userAgent,
+                        within_geofence: isWithinGeofence,
+                        timestamp: new Date().toISOString(),
+                    },
+                    risk_score: isWithinGeofence ? 0 : 50,
+                })
+                .select()
+                .single();
 
-        if (entityError) {
-            console.error('Error saving location:', entityError);
-        }
+            if (entityError) {
+                console.error('Error saving location:', entityError);
+            }
 
-        // Create alert if outside geofence
-        if (!isWithinGeofence) {
-            await supabase.from('security_alerts').insert({
-                module: 'sentry',
-                severity: 'medium',
-                type: 'geofence_violation',
-                title: 'Employee Outside Geofence',
-                description: `Employee ${employeeId} detected outside authorized area`,
-                context: {
-                    employeeId,
-                    location,
-                    ip,
-                },
-            });
+            // Create alert if outside geofence
+            if (!isWithinGeofence) {
+                await supabase.from('security_alerts').insert({
+                    module: 'sentry',
+                    severity: 'medium',
+                    type: 'geofence_violation',
+                    title: 'Employee Outside Geofence',
+                    description: `Employee ${employeeId} detected outside authorized area`,
+                    context: {
+                        employeeId,
+                        location,
+                        ip,
+                    },
+                });
+            }
         }
 
         return NextResponse.json({
@@ -96,6 +99,8 @@ export async function POST(request: Request) {
 // GET - Get employee locations
 export async function GET() {
     try {
+        if (!supabase) return NextResponse.json({ success: true, data: { employees: [] } });
+
         const { data: entities, error } = await supabase
             .from('security_entities')
             .select('*')
