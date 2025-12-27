@@ -54,7 +54,7 @@ export default function EmployeeSecurityPage() {
 
     return (
         <div className="min-h-screen bg-slate-950 p-6 font-sans text-slate-200">
-            <header className="flex justify-between items-center mb-8 border-b border-slate-800 pb-6">
+            <header className="flex justify-between items-center mb-8 border-b border-slate-800/50 pb-6">
                 <div>
                     <h1 className="text-3xl font-bold text-slate-100 flex items-center gap-3">
                         <Users className="w-8 h-8 text-blue-500" />
@@ -73,7 +73,7 @@ export default function EmployeeSecurityPage() {
             </header>
 
             <Tabs defaultValue="overview" className="space-y-6" onValueChange={setActiveTab}>
-                <TabsList className="bg-slate-900 border border-slate-800 p-1">
+                <TabsList className="bg-slate-900/40 backdrop-blur-md border border-slate-800/50 p-1">
                     <TabsTrigger value="overview">Overview</TabsTrigger>
                     <TabsTrigger value="phishing">Phishing Sim</TabsTrigger>
                     <TabsTrigger value="credentials">Credential Sentinel</TabsTrigger>
@@ -86,7 +86,7 @@ export default function EmployeeSecurityPage() {
                 {/* Overview Tab */}
                 <TabsContent value="overview">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                        <Card className="bg-slate-900 border-slate-800">
+                        <Card className="bg-slate-900/40 backdrop-blur-md border-slate-800/50">
                             <CardHeader className="pb-2">
                                 <CardTitle className="text-sm font-medium text-slate-400">Identity Score</CardTitle>
                             </CardHeader>
@@ -95,7 +95,7 @@ export default function EmployeeSecurityPage() {
                                 <p className="text-xs text-slate-500 mt-1">Top 10% of Organization</p>
                             </CardContent>
                         </Card>
-                        <Card className="bg-slate-900 border-slate-800">
+                        <Card className="bg-slate-900/40 backdrop-blur-md border-slate-800/50">
                             <CardHeader className="pb-2">
                                 <CardTitle className="text-sm font-medium text-slate-400">Active Users</CardTitle>
                             </CardHeader>
@@ -104,7 +104,7 @@ export default function EmployeeSecurityPage() {
                                 <p className="text-xs text-slate-500 mt-1">+12 this week</p>
                             </CardContent>
                         </Card>
-                        <Card className="bg-slate-900 border-slate-800">
+                        <Card className="bg-slate-900/40 backdrop-blur-md border-slate-800/50">
                             <CardHeader className="pb-2">
                                 <CardTitle className="text-sm font-medium text-slate-400">At-Risk Accounts</CardTitle>
                             </CardHeader>
@@ -113,7 +113,7 @@ export default function EmployeeSecurityPage() {
                                 <p className="text-xs text-slate-500 mt-1">Requires Attention</p>
                             </CardContent>
                         </Card>
-                        <Card className="bg-slate-900 border-slate-800">
+                        <Card className="bg-slate-900/40 backdrop-blur-md border-slate-800/50">
                             <CardHeader className="pb-2">
                                 <CardTitle className="text-sm font-medium text-slate-400">Phishing Rate</CardTitle>
                             </CardHeader>
@@ -125,7 +125,7 @@ export default function EmployeeSecurityPage() {
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <Card className="bg-slate-900 border-slate-800 lg:col-span-2">
+                        <Card className="bg-slate-900/40 backdrop-blur-md border-slate-800/50 lg:col-span-2">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2 justify-between">
                                     <div className="flex items-center gap-2">
@@ -142,13 +142,13 @@ export default function EmployeeSecurityPage() {
                             </CardHeader>
                             <CardContent className="max-h-[400px] overflow-y-auto">
                                 {loading ? (
-                                    <div className="h-[300px] flex items-center justify-center border-2 border-dashed border-slate-800 rounded-lg bg-slate-950/50">
+                                    <div className="h-[300px] flex items-center justify-center border-2 border-dashed border-slate-800/50 rounded-lg bg-slate-950/50">
                                         <p className="text-slate-500 flex items-center gap-2">
                                             <Search className="w-4 h-4 animate-spin" /> Loading security events...
                                         </p>
                                     </div>
                                 ) : impossibleTravelAlerts.length === 0 ? (
-                                    <div className="h-[300px] flex items-center justify-center border-2 border-dashed border-slate-800 rounded-lg bg-slate-950/50">
+                                    <div className="h-[300px] flex items-center justify-center border-2 border-dashed border-slate-800/50 rounded-lg bg-slate-950/50">
                                         <p className="text-slate-500 flex items-center gap-2">
                                             <CheckCircle className="w-4 h-4 text-green-500" /> No impossible travel detected
                                         </p>
@@ -192,7 +192,7 @@ export default function EmployeeSecurityPage() {
                                                     </div>
                                                 </div>
 
-                                                <div className="p-3 bg-slate-950/50 rounded border border-slate-800 mb-3">
+                                                <div className="p-3 bg-slate-950/50 rounded border border-slate-800/50 mb-3">
                                                     <p className="text-sm text-slate-300">{alert.details}</p>
                                                 </div>
 
@@ -218,13 +218,13 @@ export default function EmployeeSecurityPage() {
 
                 {/* Mock Phishing Tab */}
                 <TabsContent value="phishing">
-                    <Card className="bg-slate-900 border-slate-800">
+                    <Card className="bg-slate-900/40 backdrop-blur-md border-slate-800/50">
                         <CardHeader>
                             <CardTitle>Phishing Simulation Campaigns</CardTitle>
                             <CardDescription>Train employees to recognize social engineering attacks.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className="p-4 border border-slate-800 rounded-lg bg-slate-950 flex items-center justify-between">
+                            <div className="p-4 border border-slate-800/50 rounded-lg bg-slate-950 flex items-center justify-between">
                                 <div className="flex items-center gap-4">
                                     <div className="p-2 bg-purple-900/20 rounded-lg text-purple-400">
                                         <Mail className="w-6 h-6" />
@@ -242,7 +242,7 @@ export default function EmployeeSecurityPage() {
 
                 {/* Mock Credentials Tab */}
                 <TabsContent value="credentials">
-                    <Card className="bg-slate-900 border-slate-800">
+                    <Card className="bg-slate-900/40 backdrop-blur-md border-slate-800/50">
                         <CardHeader>
                             <CardTitle>Credential Sentinel</CardTitle>
                             <CardDescription>Monitor the dark web for leaked employee credentials.</CardDescription>
@@ -261,7 +261,7 @@ export default function EmployeeSecurityPage() {
 
                 {/* NEW FEATURE: Privilege Audit */}
                 <TabsContent value="privilege">
-                    <Card className="bg-slate-900 border-slate-800">
+                    <Card className="bg-slate-900/40 backdrop-blur-md border-slate-800/50">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2 text-yellow-400">
                                 <AlertTriangle className="w-5 h-5" /> Internal Privilege Audit (Least Privilege)
@@ -271,7 +271,7 @@ export default function EmployeeSecurityPage() {
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div className="rounded-md border border-slate-800 overflow-hidden">
+                            <div className="rounded-md border border-slate-800/50 overflow-hidden">
                                 <table className="w-full text-sm text-left">
                                     <thead className="bg-slate-950 text-slate-400 uppercase font-mono text-xs">
                                         <tr>

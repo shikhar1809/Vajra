@@ -1,15 +1,13 @@
-"use client";
-
 import { useEffect, useState, useRef, ReactNode } from 'react';
 import { motion, HTMLMotionProps } from 'framer-motion';
 
 const styles = {
   wrapper: {
     display: 'inline-block',
-    whiteSpace: 'pre-wrap' as const
+    whiteSpace: 'pre-wrap' as 'pre-wrap'
   },
   srOnly: {
-    position: 'absolute' as const,
+    position: 'absolute' as 'absolute',
     width: '1px',
     height: '1px',
     padding: 0,
@@ -22,7 +20,6 @@ const styles = {
 
 interface DecryptedTextProps extends HTMLMotionProps<'span'> {
   text: string;
-  hoverText?: string;
   speed?: number;
   maxIterations?: number;
   sequential?: boolean;
@@ -37,7 +34,6 @@ interface DecryptedTextProps extends HTMLMotionProps<'span'> {
 
 export default function DecryptedText({
   text,
-  hoverText,
   speed = 50,
   maxIterations = 10,
   sequential = false,
@@ -57,15 +53,12 @@ export default function DecryptedText({
   const [hasAnimated, setHasAnimated] = useState<boolean>(false);
   const containerRef = useRef<HTMLSpanElement>(null);
 
-  // Use hoverText when hovering, otherwise use text
-  const currentText = isHovering && hoverText ? hoverText : text;
-
   useEffect(() => {
     let interval: NodeJS.Timeout;
     let currentIteration = 0;
 
     const getNextIndex = (revealedSet: Set<number>): number => {
-      const textLength = currentText.length;
+      const textLength = text.length;
       switch (revealDirection) {
         case 'start':
           return revealedSet.size;
@@ -91,7 +84,7 @@ export default function DecryptedText({
     };
 
     const availableChars = useOriginalCharsOnly
-      ? Array.from(new Set(currentText.split(''))).filter(char => char !== ' ')
+      ? Array.from(new Set(text.split(''))).filter(char => char !== ' ')
       : characters.split('');
 
     const shuffleText = (originalText: string, currentRevealed: Set<number>): string => {
@@ -135,11 +128,11 @@ export default function DecryptedText({
       interval = setInterval(() => {
         setRevealedIndices(prevRevealed => {
           if (sequential) {
-            if (prevRevealed.size < currentText.length) {
+            if (prevRevealed.size < text.length) {
               const nextIndex = getNextIndex(prevRevealed);
               const newRevealed = new Set(prevRevealed);
               newRevealed.add(nextIndex);
-              setDisplayText(shuffleText(currentText, newRevealed));
+              setDisplayText(shuffleText(text, newRevealed));
               return newRevealed;
             } else {
               clearInterval(interval);
@@ -147,19 +140,19 @@ export default function DecryptedText({
               return prevRevealed;
             }
           } else {
-            setDisplayText(shuffleText(currentText, prevRevealed));
+            setDisplayText(shuffleText(text, prevRevealed));
             currentIteration++;
             if (currentIteration >= maxIterations) {
               clearInterval(interval);
               setIsScrambling(false);
-              setDisplayText(currentText);
+              setDisplayText(text);
             }
             return prevRevealed;
           }
         });
       }, speed);
     } else {
-      setDisplayText(currentText);
+      setDisplayText(text);
       setRevealedIndices(new Set());
       setIsScrambling(false);
     }
@@ -167,7 +160,7 @@ export default function DecryptedText({
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isHovering, currentText, speed, maxIterations, sequential, revealDirection, characters, useOriginalCharsOnly]);
+  }, [isHovering, text, speed, maxIterations, sequential, revealDirection, characters, useOriginalCharsOnly]);
 
   useEffect(() => {
     if (animateOn !== 'view' && animateOn !== 'both') return;

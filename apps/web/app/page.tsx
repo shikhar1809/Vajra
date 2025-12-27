@@ -6,7 +6,8 @@ import { usePathname } from "next/navigation";
 import { Shield, Code, MapPin, ArrowRight, CheckCircle2, Sparkles, DollarSign, Lock, Zap, AlertTriangle } from "lucide-react";
 import Ribbons from "@/components/Ribbons";
 import PillNav from "@/components/PillNav";
-import InfiniteGridBackground from "@/components/InfiniteGridBackground";
+import Plasma from "@/components/Plasma";
+import DecryptedText from "@/components/DecryptedText";
 import { LetsWorkTogether } from "@/components/LetsWorkTogether";
 import { ContainerScroll, FeatureSlideshow } from "@/components/ContainerScrollShowcase";
 import IncidentAnalyticsDashboard from "@/components/funnel-chart-big";
@@ -14,14 +15,24 @@ import { FeatureSteps } from "@/components/feature-section";
 import Lanyard from "@/components/Lanyard";
 import { LampContainer } from "@/components/ui/lamp-custom";
 import { motion } from "framer-motion";
+import Footer from "@/components/Footer";
 
 export default function HomePage() {
     const pathname = usePathname();
 
     return (
         <div className="min-h-screen bg-black relative">
-            {/* Infinite Grid Background - Fixed behind everything */}
-            <InfiniteGridBackground />
+            {/* Plasma Background - Fixed behind everything */}
+            <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100vh', zIndex: 0 }}>
+                <Plasma
+                    color="#ef4444"
+                    speed={0.5}
+                    direction="forward"
+                    scale={1.2}
+                    opacity={0.4}
+                    mouseInteractive={true}
+                />
+            </div>
 
             {/* Content wrapper with relative positioning */}
             <div className="relative z-10">
@@ -203,7 +214,7 @@ export default function HomePage() {
                         </h2>
                     </div>
                     <LampContainer className="pt-0 min-h-[50vh]">
-                        <div className="flex flex-col items-center justify-center relative z-20 w-full max-w-4xl mx-auto -mt-32">
+                        <div className="flex flex-col items-center justify-center relative z-20 w-full max-w-4xl mx-auto mt-0">
                             <motion.div
                                 initial={{ opacity: 0.5, y: 100 }}
                                 whileInView={{ opacity: 1, y: 0 }}
@@ -215,16 +226,37 @@ export default function HomePage() {
                                 className="text-center"
                             >
                                 <div className="grid md:grid-cols-3 gap-8 md:gap-16 mb-12">
-                                    <div className="p-4 rounded-xl bg-black border border-red-500/10 backdrop-blur-sm">
-                                        <div className="text-5xl font-black text-white mb-2 shadow-red-500/20 drop-shadow-lg">99.9%</div>
+                                    <div className="p-4 rounded-xl bg-transparent border border-red-500/20 backdrop-blur-sm">
+                                        <div className="text-5xl font-black text-white mb-2 shadow-red-500/20 drop-shadow-lg">
+                                            <DecryptedText
+                                                text="99.9%"
+                                                animateOn="view"
+                                                speed={30}
+                                                maxIterations={15}
+                                            />
+                                        </div>
                                         <div className="text-red-200 font-medium">Threat Detection</div>
                                     </div>
-                                    <div className="p-4 rounded-xl bg-black border border-red-500/10 backdrop-blur-sm">
-                                        <div className="text-5xl font-black text-white mb-2 shadow-red-500/20 drop-shadow-lg">&lt;100ms</div>
+                                    <div className="p-4 rounded-xl bg-transparent border border-red-500/20 backdrop-blur-sm">
+                                        <div className="text-5xl font-black text-white mb-2 shadow-red-500/20 drop-shadow-lg">
+                                            <DecryptedText
+                                                text="<100ms"
+                                                animateOn="view"
+                                                speed={30}
+                                                maxIterations={15}
+                                            />
+                                        </div>
                                         <div className="text-red-200 font-medium">Response Time</div>
                                     </div>
-                                    <div className="p-4 rounded-xl bg-black border border-red-500/10 backdrop-blur-sm">
-                                        <div className="text-5xl font-black text-white mb-2 shadow-red-500/20 drop-shadow-lg">24/7</div>
+                                    <div className="p-4 rounded-xl bg-transparent border border-red-500/20 backdrop-blur-sm">
+                                        <div className="text-5xl font-black text-white mb-2 shadow-red-500/20 drop-shadow-lg">
+                                            <DecryptedText
+                                                text="24/7"
+                                                animateOn="view"
+                                                speed={30}
+                                                maxIterations={15}
+                                            />
+                                        </div>
                                         <div className="text-red-200 font-medium">Monitoring</div>
                                     </div>
                                 </div>
@@ -236,6 +268,9 @@ export default function HomePage() {
                 {/* Final CTA - Let's Work Together */}
                 <LetsWorkTogether />
             </div> {/* End content wrapper */}
+
+            {/* Footer Credit */}
+            <Footer />
         </div>
     );
 }

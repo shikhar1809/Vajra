@@ -47,7 +47,7 @@ export default function VendorRiskPage() {
             </header>
 
             {/* AI Bill Analysis Zone */}
-            <Card className="bg-slate-900 border-slate-800 overflow-hidden relative">
+            <Card className="bg-slate-900/40 backdrop-blur-md border-slate-800/50 overflow-hidden relative">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 to-purple-600"></div>
                 <CardHeader>
                     <CardTitle className="text-white flex items-center gap-2">
@@ -63,7 +63,7 @@ export default function VendorRiskPage() {
                             onDrop={handleDrop}
                             className={clsx(
                                 "border-2 border-dashed rounded-xl h-64 flex flex-col items-center justify-center transition-all cursor-pointer",
-                                isDragging ? "border-purple-500 bg-purple-900/20" : "border-slate-700 bg-slate-950/50 hover:bg-slate-900",
+                                isDragging ? "border-purple-500 bg-purple-900/20" : "border-slate-700 bg-slate-950/50 hover:bg-slate-900/40 backdrop-blur-md",
                                 analyzing && "animate-pulse pointer-events-none"
                             )}
                         >
@@ -75,7 +75,7 @@ export default function VendorRiskPage() {
                                 </div>
                             ) : (
                                 <>
-                                    <div className="p-4 bg-slate-900 rounded-full mb-4">
+                                    <div className="p-4 bg-slate-900/40 backdrop-blur-md rounded-full mb-4">
                                         <UploadCloud className="w-8 h-8 text-slate-400" />
                                     </div>
                                     <h3 className="text-lg font-semibold text-slate-200">Drop Vendor Invoice/Bill here</h3>
@@ -89,7 +89,7 @@ export default function VendorRiskPage() {
 
                             {/* Result Left: Vendor Profile */}
                             <div className="space-y-6">
-                                <div className="p-5 rounded-xl bg-slate-950 border border-slate-800">
+                                <div className="p-5 rounded-xl bg-slate-950 border border-slate-800/50">
                                     <h4 className="text-sm text-slate-500 font-bold uppercase tracking-wider mb-4">Extracted Vendor Profile</h4>
                                     <div className="space-y-3">
                                         <div className="flex justify-between items-center py-2 border-b border-slate-900">
@@ -210,7 +210,7 @@ function VendorIntelCard() {
     };
 
     return (
-        <Card className="bg-slate-900 border-slate-800">
+        <Card className="bg-slate-900/40 backdrop-blur-md border-slate-800/50">
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-emerald-500"></div>
             <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-white">
@@ -224,7 +224,7 @@ function VendorIntelCard() {
                         <input
                             type="text"
                             placeholder="Enter Vendor Domain (e.g. stripe.com, google.com)"
-                            className="w-full bg-slate-950 border border-slate-800 rounded-md px-4 py-2 text-slate-200 focus:outline-none focus:border-green-500 transition-colors"
+                            className="w-full bg-slate-950 border border-slate-800/50 rounded-md px-4 py-2 text-slate-200 focus:outline-none focus:border-green-500 transition-colors"
                             value={domain}
                             onChange={(e) => setDomain(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && runScan()}
@@ -264,7 +264,7 @@ function VendorIntelCard() {
                         </div>
 
                         {/* Technical Checks Table */}
-                        <div className="border border-slate-800 rounded-lg overflow-hidden">
+                        <div className="border border-slate-800/50 rounded-lg overflow-hidden">
                             <table className="w-full text-left text-sm">
                                 <thead className="bg-slate-950 text-slate-400 font-medium">
                                     <tr>

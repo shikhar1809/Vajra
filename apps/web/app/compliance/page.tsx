@@ -150,7 +150,7 @@ export default function CompliancePage() {
             {/* Top Row: Trust Center & Insurance Shield */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Live Trust Center */}
-                <Card className="bg-slate-900 border-slate-800 relative overflow-hidden group">
+                <Card className="bg-slate-900/40 backdrop-blur-md border-slate-800/50 relative overflow-hidden group">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-full blur-3xl -mr-10 -mt-10 group-hover:bg-green-500/20 transition-all"></div>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-slate-200">
@@ -176,7 +176,7 @@ export default function CompliancePage() {
                                 <div className="text-xl font-mono text-green-400">{trustData?.uptime_90d}%</div>
                             </div>
                         </div>
-                        <div className="bg-slate-950 rounded-lg p-3 flex justify-between items-center text-sm border border-slate-800">
+                        <div className="bg-slate-950 rounded-lg p-3 flex justify-between items-center text-sm border border-slate-800/50">
                             <span className="text-slate-400">Last Verified Scan: <span className="text-slate-200">{trustData?.last_scan ?? "Pending..."}</span></span>
                             <span className="flex items-center text-green-400 gap-1"><Shield className="w-3 h-3" /> {trustData?.threats_blocked_24h ?? 0} Threats Blocked</span>
                         </div>
@@ -184,7 +184,7 @@ export default function CompliancePage() {
                 </Card>
 
                 {/* Financial Liability Shield */}
-                <Card className="bg-slate-900 border-slate-800 relative overflow-hidden group">
+                <Card className="bg-slate-900/40 backdrop-blur-md border-slate-800/50 relative overflow-hidden group">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl -mr-10 -mt-10 group-hover:bg-blue-500/20 transition-all"></div>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-slate-200">
@@ -208,7 +208,7 @@ export default function CompliancePage() {
                             </Badge>
                         </div>
                         <div className="grid grid-cols-2 gap-4 text-sm">
-                            <div className="bg-slate-950 p-3 rounded border border-slate-800">
+                            <div className="bg-slate-950 p-3 rounded border border-slate-800/50">
                                 <div className="text-slate-500">Current Est. Premium</div>
                                 <div className="text-slate-300 font-mono">${insuranceData?.current_premium_est}</div>
                             </div>
@@ -221,7 +221,7 @@ export default function CompliancePage() {
             </div>
 
             {/* AI Gap Analysis "The Virtual CISO" */}
-            <Card className="bg-slate-900 border-slate-800">
+            <Card className="bg-slate-900/40 backdrop-blur-md border-slate-800/50">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-slate-200">
                         <Sparkles className="w-5 h-5 text-purple-500" /> Virtual CISO (Gemini 3 Pro)
@@ -230,15 +230,15 @@ export default function CompliancePage() {
                 </CardHeader>
                 <CardContent className="space-y-6">
                     {/* Setup Form */}
-                    <div className="flex flex-col md:flex-row gap-4 items-end bg-slate-950 p-4 rounded-lg border border-slate-800">
+                    <div className="flex flex-col md:flex-row gap-4 items-end bg-slate-950 p-4 rounded-lg border border-slate-800/50">
                         <div className="grid grid-cols-3 gap-4 flex-1 w-full">
                             <div className="space-y-2">
                                 <label className="text-xs text-slate-400">Industry</label>
                                 <Select onValueChange={(v) => setProfile({ ...profile, industry: v })}>
-                                    <SelectTrigger className="bg-slate-900 border-slate-700 text-slate-200">
+                                    <SelectTrigger className="bg-slate-900/40 backdrop-blur-md border-slate-700 text-slate-200">
                                         <SelectValue placeholder="Select Industry" />
                                     </SelectTrigger>
-                                    <SelectContent className="bg-slate-900 border-slate-700 text-slate-200">
+                                    <SelectContent className="bg-slate-900/40 backdrop-blur-md border-slate-700 text-slate-200">
                                         <SelectItem value="healthcare">Healthcare / Medical</SelectItem>
                                         <SelectItem value="fintech">Fintech / Banking</SelectItem>
                                         <SelectItem value="ecommerce">E-Commerce</SelectItem>
@@ -249,10 +249,10 @@ export default function CompliancePage() {
                             <div className="space-y-2">
                                 <label className="text-xs text-slate-400">Company Size</label>
                                 <Select onValueChange={(v) => setProfile({ ...profile, company_size: v })}>
-                                    <SelectTrigger className="bg-slate-900 border-slate-700 text-slate-200">
+                                    <SelectTrigger className="bg-slate-900/40 backdrop-blur-md border-slate-700 text-slate-200">
                                         <SelectValue placeholder="Employees" />
                                     </SelectTrigger>
-                                    <SelectContent className="bg-slate-900 border-slate-700 text-slate-200">
+                                    <SelectContent className="bg-slate-900/40 backdrop-blur-md border-slate-700 text-slate-200">
                                         <SelectItem value="1-10">1-10 (Micro)</SelectItem>
                                         <SelectItem value="11-50">11-50 (Small)</SelectItem>
                                         <SelectItem value="51-200">51-200 (Medium)</SelectItem>
@@ -262,10 +262,10 @@ export default function CompliancePage() {
                             <div className="space-y-2">
                                 <label className="text-xs text-slate-400">Region</label>
                                 <Select onValueChange={(v) => setProfile({ ...profile, region: v })}>
-                                    <SelectTrigger className="bg-slate-900 border-slate-700 text-slate-200">
+                                    <SelectTrigger className="bg-slate-900/40 backdrop-blur-md border-slate-700 text-slate-200">
                                         <SelectValue placeholder="Location" />
                                     </SelectTrigger>
-                                    <SelectContent className="bg-slate-900 border-slate-700 text-slate-200">
+                                    <SelectContent className="bg-slate-900/40 backdrop-blur-md border-slate-700 text-slate-200">
                                         <SelectItem value="us">United States</SelectItem>
                                         <SelectItem value="eu">Europe (GDPR)</SelectItem>
                                         <SelectItem value="asia">Asia Pacific</SelectItem>
@@ -300,7 +300,7 @@ export default function CompliancePage() {
 
                     {/* Results Table */}
 
-                    <div className="border border-slate-800 rounded-lg overflow-hidden">
+                    <div className="border border-slate-800/50 rounded-lg overflow-hidden">
                         <table className="w-full text-left text-sm text-slate-400">
                             <thead className="bg-slate-950 text-slate-200 font-medium">
                                 <tr>
@@ -334,7 +334,7 @@ export default function CompliancePage() {
             {/* Framework Status (Existing) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {readiness.map((fw) => (
-                    <Card key={fw.framework} className="bg-slate-900 border-slate-800">
+                    <Card key={fw.framework} className="bg-slate-900/40 backdrop-blur-md border-slate-800/50">
                         <CardHeader className="pb-2">
                             <CardTitle className="flex justify-between items-center text-slate-200">
                                 {fw.framework} Readiness
@@ -358,7 +358,7 @@ export default function CompliancePage() {
             </div>
 
             {/* AI Report (Existing) */}
-            <Card className="bg-slate-900 border-slate-800">
+            <Card className="bg-slate-900/40 backdrop-blur-md border-slate-800/50">
                 <CardHeader className="flex flex-row items-center justify-between">
                     <div>
                         <CardTitle className="text-slate-200 flex items-center gap-2">
@@ -372,7 +372,7 @@ export default function CompliancePage() {
                 </CardHeader>
                 <CardContent>
                     <textarea
-                        className="w-full h-48 bg-slate-950 border-slate-800 rounded-lg p-4 text-slate-300 font-mono text-sm resize-none focus:outline-none focus:border-purple-500/50 transition-colors"
+                        className="w-full h-48 bg-slate-950 border-slate-800/50 rounded-lg p-4 text-slate-300 font-mono text-sm resize-none focus:outline-none focus:border-purple-500/50 transition-colors"
                         readOnly
                         value={aiReport || "Report preview will appear here..."}
                     />

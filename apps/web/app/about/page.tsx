@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Shield, FileText, DollarSign, Eye, Target, Zap, Users, Lock, TrendingUp, Award, CheckCircle2, ArrowRight } from "lucide-react";
 import BoxLoader from "@/components/BoxLoader";
 import MountainVistaParallax from "@/components/MountainVistaParallax";
+import Footer from "@/components/Footer";
 
 import PillNav from "@/components/PillNav";
 
@@ -288,6 +289,9 @@ export default function AboutPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Footer Credit */}
+            <Footer />
         </div>
     );
 }

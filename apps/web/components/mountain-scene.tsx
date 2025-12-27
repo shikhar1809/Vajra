@@ -3,15 +3,15 @@ import * as THREE from "three";
 
 /**
  * GenerativeMountainScene
- * Renders a solid, undulating mountain landscape in red.
+ * * Renders a solid, undulating mountain landscape.
+ * * "No gaps" (wireframe: false) implementation.
  */
 export function GenerativeMountainScene() {
-  const mountRef = useRef<HTMLDivElement>(null);
-  const lightRef = useRef<THREE.PointLight | null>(null);
+  const mountRef = useRef(null);
+  const lightRef = useRef(null);
 
   useEffect(() => {
     const currentMount = mountRef.current;
-    if (!currentMount) return;
 
     // SCENE SETUP
     const scene = new THREE.Scene();
@@ -34,14 +34,14 @@ export function GenerativeMountainScene() {
     // GEOMETRY
     const geometry = new THREE.PlaneGeometry(12, 8, 128, 128);
 
-    // SHADER MATERIAL - RED COLOR
+    // SHADER MATERIAL
     const material = new THREE.ShaderMaterial({
       side: THREE.DoubleSide,
-      wireframe: false,
+      wireframe: false, // Changed to false to remove gaps (make solid)
       uniforms: {
         time: { value: 0 },
         pointLightPosition: { value: new THREE.Vector3(0, 0, 5) },
-        color: { value: new THREE.Color("#ef4444") }, // Red color
+        color: { value: new THREE.Color("#ef4444") }, // Changed to red
       },
       vertexShader: `
         uniform float time;
@@ -145,8 +145,8 @@ export function GenerativeMountainScene() {
     lightRef.current = pointLight;
     scene.add(pointLight);
 
-    let frameId: number;
-    const animate = (t: number) => {
+    let frameId;
+    const animate = (t) => {
       material.uniforms.time.value = t * 0.0003;
       renderer.render(scene, camera);
       frameId = requestAnimationFrame(animate);
@@ -160,16 +160,14 @@ export function GenerativeMountainScene() {
       renderer.setSize(currentMount.clientWidth, currentMount.clientHeight);
     };
 
-    const handleMouseMove = (e: MouseEvent) => {
+    const handleMouseMove = (e) => {
       const x = (e.clientX / window.innerWidth) * 2 - 1;
       const y = -(e.clientY / window.innerHeight) * 2 + 1;
       const lightX = x * 5;
       const lightY = y * 5;
       const pos = new THREE.Vector3(lightX, 2, 2 - y * 2);
 
-      if (lightRef.current) {
-        lightRef.current.position.copy(pos);
-      }
+      lightRef.current.position.copy(pos);
       if (material.uniforms.pointLightPosition) {
         material.uniforms.pointLightPosition.value = pos;
       }
@@ -182,9 +180,7 @@ export function GenerativeMountainScene() {
       cancelAnimationFrame(frameId);
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("mousemove", handleMouseMove);
-      if (currentMount && renderer.domElement.parentNode === currentMount) {
-        currentMount.removeChild(renderer.domElement);
-      }
+      if (currentMount) currentMount.removeChild(renderer.domElement);
       geometry.dispose();
       material.dispose();
     };
