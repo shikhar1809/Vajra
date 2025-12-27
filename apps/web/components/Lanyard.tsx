@@ -44,12 +44,12 @@ export default function Lanyard({
   }, []);
 
   return (
-    <div className="lanyard-wrapper h-[600px] w-full relative z-20">
+    <div className="lanyard-wrapper h-[600px] w-full relative z-20 bg-black">
       <Canvas
         camera={{ position, fov }}
         dpr={[1, isMobile ? 1.5 : 2]}
-        gl={{ alpha: transparent }}
-        onCreated={({ gl }) => gl.setClearColor(new THREE.Color(0x000000), transparent ? 0 : 1)}
+        gl={{ alpha: false }}
+        onCreated={({ gl }) => gl.setClearColor(new THREE.Color(0x000000), 1)}
         className="w-full h-full"
       >
         <ambientLight intensity={Math.PI} />
@@ -231,24 +231,24 @@ function Band({ maxSpeed = 50, minSpeed = 0, isMobile = false }: BandProps) {
             <Html
               transform
               wrapperClass="html-screen-content"
-              distanceFactor={1.2}
-              position={[0, 0.85, 0.05]}
+              distanceFactor={1.17}
+              position={[0, 0.50, 0.051]}
               rotation={[0, 0, 0]}
             >
-              <div className="w-[175px] h-[290px] bg-black p-4 flex flex-col items-center justify-center text-center select-none pointer-events-none rounded-[30px]">
-                <div className="mb-4">
-                  <img src={vajraLogo} alt="Vajra" className="w-16 h-16 object-contain" />
+              <div className="w-[260px] h-[360px] bg-black border-2 border-red-500 p-3 flex flex-col items-center justify-center text-center select-none pointer-events-none rounded-[18px] overflow-hidden">
+                <div className="mb-3">
+                  <img src={vajraLogo} alt="Vajra" className="w-14 h-14 object-contain" />
                 </div>
-                <div className="text-white font-bold text-xl tracking-widest mb-1">
+                <div className="text-white font-bold text-lg tracking-widest mb-1">
                   VAJRA
                 </div>
                 <div className="w-full h-[1px] bg-red-500 mb-2"></div>
-                <div className="text-red-500 font-mono text-[10px] font-bold tracking-widest uppercase">
+                <div className="text-red-500 font-mono text-[9px] font-bold tracking-widest uppercase">
                   Your Personnel CISO
                 </div>
-                <div className="mt-8 opacity-50">
-                  <div className="w-12 h-12 border-2 border-white rounded-md flex items-center justify-center">
-                    <div className="w-8 h-8 bg-white/20 rounded-full"></div>
+                <div className="mt-6 opacity-50">
+                  <div className="w-10 h-10 border-2 border-white rounded-md flex items-center justify-center">
+                    <div className="w-6 h-6 bg-white/20 rounded-full"></div>
                   </div>
                 </div>
               </div>
