@@ -11,7 +11,7 @@ services:
       - ./backend:/app
       - vajra_data:/app/data # Persistent DuckDB storage
     environment:
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
+
       - DATABASE_PATH=/app/data/vajra_prod.db
       - HOST=0.0.0.0
       - PORT=8000

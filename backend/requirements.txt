@@ -6,4 +6,8 @@ sse-starlette
 python-multipart
 pypdf
 geopy
+dnspython
+google-genai
+google-generativeai
+fpdf
 

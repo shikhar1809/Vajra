@@ -31,11 +31,13 @@ export default function Sidebar() {
         <div className="h-full flex flex-col p-6">
             {/* Branding */}
             <div className="mb-10">
-                <h1 className="text-2xl font-bold text-slate-100 tracking-tighter flex items-center gap-2">
-                    <Shield className="w-6 h-6 text-red-500" />
-                    VAJRA
-                </h1>
-                <p className="text-xs text-red-500 font-medium tracking-widest uppercase">Zero Trust Platform</p>
+                <Link href="/">
+                    <h1 className="text-2xl font-bold text-slate-100 tracking-tighter flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
+                        <Shield className="w-6 h-6 text-red-500" />
+                        VAJRA
+                    </h1>
+                    <p className="text-xs text-red-500 font-medium tracking-widest uppercase cursor-pointer">Zero Trust Platform</p>
+                </Link>
             </div>
 
             {/* Navigation */}

@@ -3,6 +3,8 @@ import { Shield, FileText, DollarSign, Eye, Target, Zap, Users, Lock, TrendingUp
 import BoxLoader from "@/components/BoxLoader";
 import MountainVistaParallax from "@/components/MountainVistaParallax";
 
+import PillNav from "@/components/PillNav";
+
 export const metadata: Metadata = {
     title: "About Us - Vajra",
     description: "Learn about Vajra's mission to protect businesses from cyber threats with enterprise-grade security solutions",
@@ -16,6 +18,22 @@ export default function AboutPage() {
 
             {/* Content */}
             <div className="relative z-10">
+                {/* Navigation */}
+                <PillNav
+                    logo="/vajra-logo.svg"
+                    logoAlt="VAJRA Logo"
+                    items={[
+                        { label: 'Home', href: '/' },
+                        { label: 'About Us', href: '/about' },
+                        { label: 'Command Center', href: '/command-center' }
+                    ]}
+                    activeHref="/about"
+                    baseColor="#000000"
+                    pillColor="#ffffff"
+                    hoveredPillTextColor="#ffffff"
+                    pillTextColor="#000000"
+                />
+
                 {/* Hero Section */}
                 <div className="relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-red-950/20 via-black/60 to-black/60" />
