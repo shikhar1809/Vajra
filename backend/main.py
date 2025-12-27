@@ -51,12 +51,12 @@ state = GlobalState()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
-    print("Skipping DuckDB initialization (temporarily disabled)")
-    # init_db()  # TEMPORARILY DISABLED DUE TO LOCK ISSUES
+    print("✅ Initializing DuckDB for Impossible Travel Detection...")
+    init_db()  # Enable database initialization
     yield
     # Shutdown
-    print("Skipping DuckDB close")
-    # close_db()  # TEMPORARILY DISABLED
+    print("Closing DuckDB connection...")
+    close_db()
 
 app = FastAPI(title="Vajra Core API", version="1.0.0", lifespan=lifespan)
 
@@ -115,6 +115,69 @@ app.include_router(auth_router)
 @app.get("/health")
 def health_check():
     return {"status": "ok", "fortress_mode": state.FORTRESS_MODE}
+
+# --- Impossible Travel Detection Endpoint ---
+from impossible_travel import check_impossible_travel as check_travel
+from pydantic import BaseModel as PydanticBaseModel
+
+class ImpossibleTravelRequest(PydanticBaseModel):
+    user_email: str
+    current_ip: str
+
+@app.post("/api/v1/check-impossible-travel")
+def check_impossible_travel_endpoint(req: ImpossibleTravelRequest):
+    """
+    Detects credential theft by analyzing the physical impossibility of 
+    traveling between consecutive login locations.
+    
+    Uses geospatial mathematics (Haversine formula) to calculate if the 
+    required travel speed exceeds human capability (>500 km/h).
+    """
+    try:
+        from database import get_db_con
+        con = get_db_con()
+        result = check_travel(req.user_email, req.current_ip, db_connection=con)
+        return result
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={"error": f"Impossible travel check failed: {str(e)}"}
+        )
+
+
+# --- ZERO TRUST ARCHITECTURE: Protected Sensitive Endpoint ---
+from security import verify_zero_trust_policy
+from fastapi import Depends
+
+@app.get("/api/v1/sensitive/company-secrets")
+async def get_company_secrets(user_email: str = Depends(verify_zero_trust_policy)):
+    """
+    🔒 ZERO TRUST PROTECTED ENDPOINT
+    
+    This endpoint is protected by real-time risk-adaptive access control.
+    Access is ONLY granted if the user's current_risk_status is 'SAFE'.
+    
+    Even with valid credentials, access is denied if:
+    - Impossible travel detected
+    - Other security threats flagged
+    - Risk status set to CRITICAL
+    
+    Demo Flow:
+    1. Call with x-user-email header when user is SAFE → 200 OK
+    2. Trigger impossible travel detection
+    3. Call again → 403 Forbidden (Zero Trust Block)
+    """
+    return {
+        "status": "authorized",
+        "data": {
+            "project": "VAJRA Grand Prize Strategy",
+            "secret_key": "ZTA-DEMO-2025",
+            "message": "Access granted via Zero Trust verification"
+        },
+        "user": user_email,
+        "zta_verification": "PASSED"
+    }
+
 
 @app.post("/api/v1/fortress-mode")
 def toggle_fortress(enable: bool):

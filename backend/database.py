@@ -123,6 +123,7 @@ def init_db():
             ('ART.33', 'GDPR', 'Breach Notification', 'At-Risk', 'events', now());
         """)
 
+
     # --- AUTO-MIGRATION FOR EXISTING DBS ---
     try:
         con.execute("ALTER TABLE employees ADD COLUMN last_login_ip VARCHAR DEFAULT '127.0.0.1'")
@@ -137,7 +138,64 @@ def init_db():
         con.execute("UPDATE employees SET last_login_location = 'Moscow, Russia' WHERE id = 'e2'")
         con.execute("UPDATE employees SET last_login_location = 'New York, USA' WHERE id = 'e3'")
     except: pass
+    
+    # Impossible Travel Detection columns
+    try:
+        con.execute("ALTER TABLE employees ADD COLUMN last_lat DOUBLE DEFAULT NULL")
+        print("✅ Migrated: Added last_lat for Impossible Travel Detection")
+    except: pass
+    
+    try:
+        con.execute("ALTER TABLE employees ADD COLUMN last_long DOUBLE DEFAULT NULL")
+        print("✅ Migrated: Added last_long for Impossible Travel Detection")
+    except: pass
+    
+    try:
+        con.execute("ALTER TABLE employees ADD COLUMN last_login_time TIMESTAMP DEFAULT NULL")
+        print("✅ Migrated: Added last_login_time for Impossible Travel Detection")
+    except: pass
+    
+    # --- ZERO TRUST ARCHITECTURE MIGRATIONS ---
+    try:
+        con.execute("ALTER TABLE employees ADD COLUMN role VARCHAR DEFAULT 'developer'")
+        print("✅ ZTA Migrated: Added role column")
+    except: pass
+    
+    try:
+        con.execute("ALTER TABLE employees ADD COLUMN current_risk_status VARCHAR DEFAULT 'SAFE'")
+        print("✅ ZTA Migrated: Added current_risk_status column")
+    except: pass
+    
+    # Seed ZTA demo users
+    try:
+        existing = con.execute("SELECT email FROM employees WHERE email IN ('alice@sme.com', 'bob_dev@sme.com', 'eve_attacker@sme.com')").fetchall()
+        existing_emails = [row[0] for row in existing]
+        
+        if 'alice@sme.com' in existing_emails:
+            con.execute("UPDATE employees SET role = 'finance', current_risk_status = 'SAFE' WHERE email = 'alice@sme.com'")
+            print("✅ ZTA: Updated alice@sme.com to finance role")
+        
+        if 'bob_dev@sme.com' not in existing_emails:
+            con.execute("""
+                INSERT INTO employees (id, email, name, department, risk_score, training_status, 
+                                     last_phishing_test_result, failed_login_count_24h, role, current_risk_status)
+                VALUES ('bob_dev', 'bob_dev@sme.com', 'Bob Developer', 'Engineering', 15, 
+                        'Up-to-Date', 'Passed', 0, 'developer', 'SAFE')
+            """)
+            print("✅ ZTA: Created bob_dev@sme.com (developer role)")
+        
+        if 'eve_attacker@sme.com' not in existing_emails:
+            con.execute("""
+                INSERT INTO employees (id, email, name, department, risk_score, training_status, 
+                                     last_phishing_test_result, failed_login_count_24h, role, current_risk_status)
+                VALUES ('eve_attacker', 'eve_attacker@sme.com', 'Eve Attacker', 'Admin', 85, 
+                        'Overdue', 'Clicked', 3, 'admin', 'SAFE')
+            """)
+            print("✅ ZTA: Created eve_attacker@sme.com (admin role)")
+    except Exception as e:
+        print(f"⚠️  ZTA seed warning: {e}")
     # ---------------------------------------
+
 
     # Seed Vendors
     result = con.execute("SELECT count(*) FROM vendors").fetchone()

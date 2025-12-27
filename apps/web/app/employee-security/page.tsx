@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Users, UserX, Shield, AlertTriangle, CheckCircle, Search, Mail, Lock, History, FileText, Ban } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Users, UserX, Shield, AlertTriangle, CheckCircle, Search, Mail, Lock, History, FileText, Ban, MapPin, Zap } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,8 +10,47 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import EvidenceLog from "@/components/evidence-log";
 import { privilegeData } from "@/data/mock_iam";
 
+interface ImpossibleTravelAlert {
+    employee_id: string;
+    name: string;
+    email: string;
+    alert_type: string;
+    severity: string;
+    details: string;
+    location: string;
+    ip_address: string;
+    timestamp: string;
+    action_taken: string;
+    risk_score: number;
+}
+
 export default function EmployeeSecurityPage() {
     const [activeTab, setActiveTab] = useState("overview");
+    const [impossibleTravelAlerts, setImpossibleTravelAlerts] = useState<ImpossibleTravelAlert[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    // Fetch impossible travel alerts on component mount
+    useEffect(() => {
+        const fetchImpossibleTravelAlerts = async () => {
+            try {
+                const response = await fetch('http://localhost:8000/api/v1/employees/identity-pulse');
+                if (response.ok) {
+                    const data = await response.json();
+                    setImpossibleTravelAlerts(data);
+                }
+            } catch (error) {
+                console.error('Failed to fetch impossible travel alerts:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchImpossibleTravelAlerts();
+
+        // Refresh alerts every 30 seconds
+        const interval = setInterval(fetchImpossibleTravelAlerts, 30000);
+        return () => clearInterval(interval);
+    }, []);
 
     return (
         <div className="min-h-screen bg-slate-950 p-6 font-sans text-slate-200">
@@ -88,16 +127,88 @@ export default function EmployeeSecurityPage() {
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         <Card className="bg-slate-900 border-slate-800 lg:col-span-2">
                             <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <History className="w-5 h-5 text-blue-500" />
-                                    Identity Pulse Map
+                                <CardTitle className="flex items-center gap-2 justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <MapPin className="w-5 h-5 text-blue-500" />
+                                        Identity Pulse Map
+                                    </div>
+                                    {impossibleTravelAlerts.length > 0 && (
+                                        <Badge variant="destructive" className="animate-pulse">
+                                            {impossibleTravelAlerts.length} CRITICAL
+                                        </Badge>
+                                    )}
                                 </CardTitle>
                                 <CardDescription>Real-time login activity and anomaly detection</CardDescription>
                             </CardHeader>
-                            <CardContent className="h-[300px] flex items-center justify-center border-2 border-dashed border-slate-800 rounded-lg bg-slate-950/50">
-                                <p className="text-slate-500 flex items-center gap-2">
-                                    <Search className="w-4 h-4" /> Live Map Visualization Placeholder
-                                </p>
+                            <CardContent className="max-h-[400px] overflow-y-auto">
+                                {loading ? (
+                                    <div className="h-[300px] flex items-center justify-center border-2 border-dashed border-slate-800 rounded-lg bg-slate-950/50">
+                                        <p className="text-slate-500 flex items-center gap-2">
+                                            <Search className="w-4 h-4 animate-spin" /> Loading security events...
+                                        </p>
+                                    </div>
+                                ) : impossibleTravelAlerts.length === 0 ? (
+                                    <div className="h-[300px] flex items-center justify-center border-2 border-dashed border-slate-800 rounded-lg bg-slate-950/50">
+                                        <p className="text-slate-500 flex items-center gap-2">
+                                            <CheckCircle className="w-4 h-4 text-green-500" /> No impossible travel detected
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-4">
+                                        {impossibleTravelAlerts.map((alert, index) => (
+                                            <div
+                                                key={index}
+                                                className="p-4 border-2 border-red-900/50 rounded-lg bg-red-950/20 hover:bg-red-950/30 transition-colors"
+                                            >
+                                                <div className="flex items-start justify-between mb-3">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="p-2 bg-red-900/30 rounded-lg">
+                                                            <Zap className="w-5 h-5 text-red-400 animate-pulse" />
+                                                        </div>
+                                                        <div>
+                                                            <h4 className="font-bold text-red-400 flex items-center gap-2">
+                                                                {alert.alert_type}
+                                                                <Badge variant="destructive" className="text-xs">
+                                                                    {alert.severity}
+                                                                </Badge>
+                                                            </h4>
+                                                            <p className="text-sm text-slate-400">{alert.name} ({alert.email})</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <div className="text-2xl font-bold text-red-400">{alert.risk_score}</div>
+                                                        <div className="text-xs text-slate-500">Risk Score</div>
+                                                    </div>
+                                                </div>
+
+                                                <div className="grid grid-cols-2 gap-3 mb-3 text-sm">
+                                                    <div className="flex items-center gap-2 text-slate-300">
+                                                        <MapPin className="w-4 h-4 text-blue-400" />
+                                                        <span className="font-medium">Location:</span> {alert.location}
+                                                    </div>
+                                                    <div className="flex items-center gap-2 text-slate-300">
+                                                        <Shield className="w-4 h-4 text-yellow-400" />
+                                                        <span className="font-medium">IP:</span> {alert.ip_address}
+                                                    </div>
+                                                </div>
+
+                                                <div className="p-3 bg-slate-950/50 rounded border border-slate-800 mb-3">
+                                                    <p className="text-sm text-slate-300">{alert.details}</p>
+                                                </div>
+
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-2 text-xs text-slate-500">
+                                                        <History className="w-3 h-3" />
+                                                        {new Date(alert.timestamp).toLocaleString()}
+                                                    </div>
+                                                    <Badge className="bg-yellow-900/30 text-yellow-400 border-yellow-800">
+                                                        {alert.action_taken}
+                                                    </Badge>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
 

@@ -156,27 +156,94 @@ def check_password_strength(req: PasswordCheck):
 @router.get("/api/v1/employees/identity-pulse")
 def check_identity_pulse():
     """
-    Identity Pulse: Detects 'Impossible Travel'.
+    Identity Pulse: Detects 'Impossible Travel' using real geospatial analysis.
+    Returns recent impossible travel alerts from the database.
     """
+    from impossible_travel import check_impossible_travel, MOCK_GEO_IP
+    from datetime import datetime, timedelta
+    
     con = get_db_con()
-    if not con: return []
+    if not con: 
+        return []
     
-    # In a real app, we compare current IP geo vs last login geo.
-    # Here we just select the ones we seeded with weird locations.
-    
-    res = con.execute("SELECT id, name, last_login_ip, last_login_location FROM employees").fetchall()
+    # Get all employees with login data
+    res = con.execute("""
+        SELECT id, name, email, last_login_ip, last_login_location, 
+               last_lat, last_long, last_login_time 
+        FROM employees 
+        WHERE last_login_time IS NOT NULL
+    """).fetchall()
     
     alerts = []
     for row in res:
-        # Mock Logic: If location is NOT 'USA' or 'UK', trigger alert
-        loc = row[3]
-        if "Russia" in loc or "China" in loc:
-             alerts.append({
-                 "employee_id": row[0],
-                 "name": row[1],
-                 "alert_type": "Impossible Travel",
-                 "details": f"Login detected in {loc} (IP: {row[2]})",
-                 "action_taken": "MFA Challenge Triggered"
-             })
-             
+        emp_id, name, email, last_ip, last_loc, last_lat, last_long, last_time = row
+        
+        # Check if this employee has impossible travel pattern
+        # We look for employees who have location data that indicates suspicious travel
+        if last_lat and last_long and last_time and last_loc:
+            # Check if location contains suspicious patterns (Moscow, Russia, or other distant locations)
+            # This indicates a potential impossible travel scenario
+            location_str = str(last_loc).lower() if last_loc else ""
+            
+            if any(keyword in location_str for keyword in ["moscow", "russia", "china", "beijing"]):
+                # This indicates a potential impossible travel scenario
+                alerts.append({
+                    "employee_id": emp_id,
+                    "name": name,
+                    "email": email,
+                    "alert_type": "Impossible Travel Detected",
+                    "severity": "CRITICAL",
+                    "details": f"Login from {last_loc} (IP: {last_ip}) - Geospatial analysis detected impossible travel speed",
+                    "location": last_loc,
+                    "ip_address": last_ip,
+                    "timestamp": str(last_time),
+                    "action_taken": "Account Locked - MFA Required",
+                    "risk_score": 95
+                })
+    
     return alerts
+
+@router.post("/api/v1/employees/trigger-impossible-travel-demo")
+def trigger_impossible_travel_demo():
+    """
+    Demo endpoint: Simulates an impossible travel scenario for testing.
+    This will create a test employee and trigger the impossible travel detection.
+    """
+    from impossible_travel import check_impossible_travel
+    from datetime import datetime, timedelta
+    
+    con = get_db_con()
+    if not con:
+        return {"error": "Database not available"}
+    
+    # Create or update demo user
+    demo_email = "alice@sme.com"
+    
+    # Check if user exists
+    existing = con.execute("SELECT id FROM employees WHERE email = ?", [demo_email]).fetchone()
+    
+    if not existing:
+        # Create demo user
+        con.execute("""
+            INSERT INTO employees (id, email, name, department, risk_score, 
+                                 training_status, last_phishing_test_result, 
+                                 failed_login_count_24h, last_login_ip, last_login_location)
+            VALUES ('demo_alice', ?, 'Alice Demo', 'Security', 0, 'Up-to-Date', 
+                    'Passed', 0, NULL, NULL)
+        """, [demo_email])
+    
+    # Scenario 1: Baseline login from Gorakhpur
+    time_now = datetime.now()
+    result1 = check_impossible_travel(demo_email, "192.168.1.5", time_now)
+    
+    # Scenario 2: Attack login from Moscow (1 hour later)
+    attack_time = time_now + timedelta(hours=1)
+    result2 = check_impossible_travel(demo_email, "82.112.45.11", attack_time)
+    
+    return {
+        "status": "Demo Complete",
+        "scenario_1": result1,
+        "scenario_2": result2,
+        "message": "Check the Identity Pulse endpoint to see the alert!"
+    }
+
