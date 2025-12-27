@@ -3,11 +3,9 @@
 import type React from "react"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import { ArrowUpRight, Calendar } from "lucide-react"
 
 export function LetsWorkTogether() {
-  const router = useRouter()
   const [isHovered, setIsHovered] = useState(false)
   const [isClicked, setIsClicked] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
@@ -18,13 +16,12 @@ export function LetsWorkTogether() {
     setIsClicked(true)
 
     setTimeout(() => {
-      router.push('/workspace')
+      setShowSuccess(true)
     }, 500)
   }
 
   const handleBookCall = () => {
-    // Redirect to workspace
-    router.push('/workspace')
+    window.open("https://cal.com/jatin-yadav05/15min", "_blank")
   }
 
   return (
@@ -41,25 +38,21 @@ export function LetsWorkTogether() {
           {/* Elegant heading */}
           <div className="flex flex-col items-center gap-2">
             <span
-              className="text-xs font-medium tracking-[0.3em] uppercase transition-all duration-500"
+              className="text-xs font-medium tracking-[0.3em] uppercase text-muted-foreground transition-all duration-500"
               style={{
                 transform: showSuccess ? "translateY(0)" : "translateY(10px)",
                 opacity: showSuccess ? 1 : 0,
                 transitionDelay: "100ms",
-                color: "#f0f0f0",
-                textShadow: "0 0 20px rgba(255, 255, 255, 0.5)",
               }}
             >
               Perfect
             </span>
             <h3
-              className="text-3xl font-light tracking-tight transition-all duration-500 sm:text-4xl"
+              className="text-3xl font-light tracking-tight text-foreground transition-all duration-500 sm:text-4xl"
               style={{
                 transform: showSuccess ? "translateY(0)" : "translateY(10px)",
                 opacity: showSuccess ? 1 : 0,
                 transitionDelay: "200ms",
-                color: "#f0f0f0",
-                textShadow: "0 0 30px rgba(255, 255, 255, 0.6)",
               }}
             >
               Let's talk
@@ -137,13 +130,11 @@ export function LetsWorkTogether() {
 
           {/* Subtle subtext */}
           <span
-            className="text-xs tracking-widest uppercase transition-all duration-500"
+            className="text-xs tracking-widest uppercase text-muted-foreground/50 transition-all duration-500"
             style={{
               transform: showSuccess ? "translateY(0)" : "translateY(10px)",
               opacity: showSuccess ? 1 : 0,
               transitionDelay: "450ms",
-              color: "#d0d0d0",
-              textShadow: "0 0 15px rgba(255, 255, 255, 0.3)",
             }}
           >
             15 min intro call
@@ -162,7 +153,7 @@ export function LetsWorkTogether() {
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
             <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
           </span>
-          <span className="text-sm font-medium tracking-widest uppercase" style={{ color: "#f0f0f0", textShadow: "0 0 20px rgba(255, 255, 255, 0.4)" }}>
+          <span className="text-sm font-medium tracking-widest uppercase text-muted-foreground">
             Available for projects
           </span>
         </div>
@@ -178,12 +169,10 @@ export function LetsWorkTogether() {
         >
           <div className="flex flex-col items-center gap-6">
             <h2
-              className="relative text-center text-5xl font-light tracking-tight sm:text-6xl md:text-7xl lg:text-8xl transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"
+              className="relative text-center text-5xl font-light tracking-tight text-foreground sm:text-6xl md:text-7xl lg:text-8xl transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"
               style={{
                 opacity: isClicked ? 0 : 1,
                 transform: isClicked ? "translateY(-40px) scale(0.95)" : "translateY(0) scale(1)",
-                color: "#f0f0f0",
-                textShadow: "0 0 40px rgba(255, 255, 255, 0.7)",
               }}
             >
               <span className="block overflow-hidden">
@@ -203,7 +192,7 @@ export function LetsWorkTogether() {
                     transform: isHovered && !isClicked ? "translateY(-8%)" : "translateY(0)",
                   }}
                 >
-                  <span style={{ color: "#d0d0d0", textShadow: "0 0 30px rgba(255, 255, 255, 0.5)" }}>together</span>
+                  <span className="text-muted-foreground/60">together</span>
                 </span>
               </span>
             </h2>
@@ -263,10 +252,10 @@ export function LetsWorkTogether() {
             pointerEvents: isClicked ? "none" : "auto",
           }}
         >
-          <p className="max-w-md text-sm leading-relaxed" style={{ color: "#e0e0e0", textShadow: "0 0 15px rgba(255, 255, 255, 0.3)" }}>
-            Ready to fortify your business? Let's discuss how Vajra can protect your digital assets.
+          <p className="max-w-md text-sm leading-relaxed text-muted-foreground">
+            Have a project in mind? I'd love to hear about it. Let's create something exceptional together.
           </p>
-          <span className="text-xs tracking-widest uppercase" style={{ color: "#d0d0d0", textShadow: "0 0 15px rgba(255, 255, 255, 0.3)" }}>contact@vajra.security</span>
+          <span className="text-xs tracking-widest uppercase text-muted-foreground/60">hello@example.com</span>
         </div>
       </div>
     </section>

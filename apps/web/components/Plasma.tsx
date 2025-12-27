@@ -199,7 +199,7 @@ export const Plasma: React.FC<PlasmaProps> = ({
       }
       try {
         containerRef.current?.removeChild(canvas);
-      } catch { }
+      } catch {}
     };
   }, [color, speed, direction, scale, opacity, mouseInteractive]);
 

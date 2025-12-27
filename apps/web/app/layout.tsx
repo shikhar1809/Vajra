@@ -24,7 +24,7 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en" suppressHydrationWarning>
-            <body className={`${inter.className} bg-slate-950 text-slate-200 overflow-hidden`} suppressHydrationWarning>
+            <body className={`${inter.className} bg-slate-950 text-slate-200`} suppressHydrationWarning>
                 <Suspense fallback={null}>
                     <LoadingProvider>
                         <GlobalLayout>

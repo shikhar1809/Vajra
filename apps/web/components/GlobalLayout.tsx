@@ -2,7 +2,6 @@
 
 import { usePathname } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
-import { Navbar } from "@/components/layout/Navbar";
 
 export default function GlobalLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
@@ -13,7 +12,6 @@ export default function GlobalLayout({ children }: { children: React.ReactNode }
     if (isLandingPage) {
         return (
             <div className="min-h-screen flex flex-col">
-                <Navbar />
                 <main className="flex-grow">
                     {children}
                 </main>
