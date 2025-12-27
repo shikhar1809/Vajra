@@ -11,6 +11,9 @@ import { LetsWorkTogether } from "@/components/LetsWorkTogether";
 import { ContainerScroll, FeatureSlideshow } from "@/components/ContainerScrollShowcase";
 import IncidentAnalyticsDashboard from "@/components/funnel-chart-big";
 import { FeatureSteps } from "@/components/feature-section";
+import Lanyard from "@/components/Lanyard";
+import { LampContainer } from "@/components/ui/lamp-custom";
+import { motion } from "framer-motion";
 
 export default function HomePage() {
     const pathname = usePathname();
@@ -50,33 +53,13 @@ export default function HomePage() {
                     />
                 </div>
 
-                {/* Hero Section */}
-                <section className="relative container mx-auto px-6 pt-32 pb-20 max-w-6xl">
-                    <div className="text-center mb-16">
-                        {/* Badge */}
-                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-red-500/10 border border-red-500/30 rounded-full mb-6 animate-pulse">
-                            <Shield className="w-4 h-4 text-red-400" />
-                            <span className="text-red-300 text-sm font-medium">AI-Powered Digital Bodyguard</span>
-                        </div>
-
-                        {/* Main Headline */}
-                        <h1 className="text-5xl md:text-7xl font-black text-white mb-6 leading-tight">
-                            ⚡ VAJRA
-                            <br />
-                            <span className="bg-gradient-to-r from-red-500 via-red-400 to-red-500 bg-clip-text text-transparent">
-                                Protects Small Businesses
-                            </span>
+                {/* 3D Lanyard Hero Section */}
+                <section className="relative w-full h-[600px] flex items-center justify-center bg-transparent z-20">
+                    <Lanyard position={[0, 0, 15]} gravity={[0, -40, 0]} />
+                    <div className="absolute bottom-10 left-0 w-full text-center pointer-events-none">
+                        <h1 className="text-4xl md:text-6xl font-black text-white tracking-widest uppercase opacity-20">
+                            VAJRA SECURITY
                         </h1>
-
-                        <p className="text-xl md:text-2xl text-slate-300 mb-4 max-w-3xl mx-auto leading-relaxed">
-                            Enterprise-grade <span className="text-red-400 font-bold">Zero Trust Security</span> for SMBs.
-                            <br />
-                            <span className="text-green-400 font-bold">Autonomous, intelligent, and effortless</span> protection.
-                        </p>
-
-                        <p className="text-lg text-slate-400 mb-10 max-w-2xl mx-auto">
-                            3-Layer Defense System powered by AI. No expertise required.
-                        </p>
                     </div>
                 </section>
 
@@ -97,7 +80,7 @@ export default function HomePage() {
                 </ContainerScroll>
 
                 {/* The Problem Section */}
-                <section className="bg-slate-900/50 border-y border-slate-800 py-16">
+                <section className="bg-black border-y border-slate-800 py-16">
                     <div className="container mx-auto px-6 max-w-5xl">
                         <div className="grid md:grid-cols-2 gap-12 items-center">
                             <div>
@@ -159,7 +142,7 @@ export default function HomePage() {
                 </section>
 
                 {/* Zero Trust Philosophy */}
-                <section className="bg-slate-900/50 border-y border-slate-800 py-20">
+                <section className="bg-black border-y border-slate-800 py-20">
                     <div className="container mx-auto px-6 max-w-5xl">
                         <div className="text-center mb-12">
                             <div className="inline-flex items-center gap-2 px-3 py-1 bg-red-500/10 border border-red-500/20 rounded-full text-red-400 text-sm font-medium mb-4">
@@ -211,40 +194,43 @@ export default function HomePage() {
                     </div>
                 </section>
 
-                {/* Stats Section */}
-                <section className="py-20 bg-gradient-to-br from-slate-900 to-slate-800">
-                    <div className="container mx-auto px-6 max-w-4xl text-center">
+                {/* Stats Section with Red Lamp */}
+                <section className="bg-black overflow-hidden relative">
+                    <div className="container mx-auto px-6 max-w-4xl text-center pt-32 pb-10 relative z-30">
                         <Sparkles className="w-12 h-12 text-red-400 mx-auto mb-6" />
-                        <h2 className="text-3xl font-bold text-white mb-4">
-                            Built for Real Protection
+                        <h2 className="text-4xl md:text-6xl font-black text-white mb-6 tracking-tight">
+                            Built for <span className="text-red-500">Real Protection</span>
                         </h2>
-                        <p className="text-lg text-slate-300 mb-12">
-                            Not just alerts—actual defense that stops attacks before they reach you
-                        </p>
-
-                        <div className="grid md:grid-cols-3 gap-8 mb-12">
-                            <div>
-                                <div className="text-5xl font-bold text-red-400 mb-2">99.9%</div>
-                                <div className="text-slate-400">Threat Detection</div>
-                            </div>
-                            <div>
-                                <div className="text-5xl font-bold text-orange-400 mb-2">&lt;100ms</div>
-                                <div className="text-slate-400">Response Time</div>
-                            </div>
-                            <div>
-                                <div className="text-5xl font-bold text-green-400 mb-2">24/7</div>
-                                <div className="text-slate-400">Monitoring</div>
-                            </div>
-                        </div>
-
-                        <Link
-                            href="/command-center"
-                            className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl font-semibold hover:from-red-600 hover:to-red-700 hover:shadow-lg hover:shadow-red-500/50 transition-all"
-                        >
-                            Start Protecting Your Business
-                            <ArrowRight className="w-5 h-5" />
-                        </Link>
                     </div>
+                    <LampContainer className="pt-0 min-h-[50vh]">
+                        <div className="flex flex-col items-center justify-center relative z-20 w-full max-w-4xl mx-auto -mt-32">
+                            <motion.div
+                                initial={{ opacity: 0.5, y: 100 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                transition={{
+                                    delay: 0.3,
+                                    duration: 0.8,
+                                    ease: "easeInOut",
+                                }}
+                                className="text-center"
+                            >
+                                <div className="grid md:grid-cols-3 gap-8 md:gap-16 mb-12">
+                                    <div className="p-4 rounded-xl bg-black border border-red-500/10 backdrop-blur-sm">
+                                        <div className="text-5xl font-black text-white mb-2 shadow-red-500/20 drop-shadow-lg">99.9%</div>
+                                        <div className="text-red-200 font-medium">Threat Detection</div>
+                                    </div>
+                                    <div className="p-4 rounded-xl bg-black border border-red-500/10 backdrop-blur-sm">
+                                        <div className="text-5xl font-black text-white mb-2 shadow-red-500/20 drop-shadow-lg">&lt;100ms</div>
+                                        <div className="text-red-200 font-medium">Response Time</div>
+                                    </div>
+                                    <div className="p-4 rounded-xl bg-black border border-red-500/10 backdrop-blur-sm">
+                                        <div className="text-5xl font-black text-white mb-2 shadow-red-500/20 drop-shadow-lg">24/7</div>
+                                        <div className="text-red-200 font-medium">Monitoring</div>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        </div>
+                    </LampContainer>
                 </section>
 
                 {/* Final CTA - Let's Work Together */}

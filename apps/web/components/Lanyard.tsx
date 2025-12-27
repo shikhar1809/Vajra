@@ -1,8 +1,8 @@
+/* eslint-disable react/no-unknown-property */
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { Canvas, extend, useFrame } from '@react-three/fiber';
-import { useGLTF, useTexture, Environment, Lightformer } from '@react-three/drei';
-import { useDevicePerformance } from '@/hooks/useDevicePerformance';
+import { useGLTF, useTexture, Environment, Lightformer, Html } from '@react-three/drei';
 import {
   BallCollider,
   CuboidCollider,
@@ -15,7 +15,10 @@ import {
 import { MeshLineGeometry, MeshLineMaterial } from 'meshline';
 import * as THREE from 'three';
 
-import './Lanyard.css';
+// Assets from public folder
+const cardGLB = '/card.glb';
+const lanyard = '/lanyard.png';
+const vajraLogo = '/vajra-shield-logo.png';
 
 extend({ MeshLineGeometry, MeshLineMaterial });
 
@@ -32,22 +35,26 @@ export default function Lanyard({
   fov = 20,
   transparent = true
 }: LanyardProps) {
-  const { isMobile, isTablet } = useDevicePerformance();
+  const [isMobile, setIsMobile] = useState<boolean>(() => typeof window !== 'undefined' && window.innerWidth < 768);
 
-  // Adjust FOV for better strap visibility on mobile
-  const adjustedFov = isMobile ? 22 : fov;
+  useEffect(() => {
+    const handleResize = (): void => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   return (
-    <div className="lanyard-wrapper">
+    <div className="lanyard-wrapper h-[600px] w-full relative z-20">
       <Canvas
-        camera={{ position, fov: adjustedFov }}
-        dpr={[1, 2]}
-        gl={{ alpha: transparent, antialias: !isMobile }}
+        camera={{ position, fov }}
+        dpr={[1, isMobile ? 1.5 : 2]}
+        gl={{ alpha: transparent }}
         onCreated={({ gl }) => gl.setClearColor(new THREE.Color(0x000000), transparent ? 0 : 1)}
+        className="w-full h-full"
       >
         <ambientLight intensity={Math.PI} />
         <Physics gravity={gravity} timeStep={isMobile ? 1 / 30 : 1 / 60}>
-          <Band isMobile={isMobile} isTablet={isTablet} />
+          <Band isMobile={isMobile} />
         </Physics>
         <Environment blur={0.75}>
           <Lightformer
@@ -88,10 +95,9 @@ interface BandProps {
   maxSpeed?: number;
   minSpeed?: number;
   isMobile?: boolean;
-  isTablet?: boolean;
 }
 
-function Band({ maxSpeed = 50, minSpeed = 0, isMobile = false, isTablet = false }: BandProps) {
+function Band({ maxSpeed = 50, minSpeed = 0, isMobile = false }: BandProps) {
   // Using "any" for refs since the exact types depend on Rapier's internals
   const band = useRef<any>(null);
   const fixed = useRef<any>(null);
@@ -113,15 +119,8 @@ function Band({ maxSpeed = 50, minSpeed = 0, isMobile = false, isTablet = false 
     linearDamping: 4
   };
 
-  const { nodes, materials } = useGLTF('/card.glb') as any;
-  const lanyardTexture = useTexture('/lanyard.png');
-  const cardTexture = useTexture('/vajra-card.png');
-
-  // Move content to the right and flip upside down
-  cardTexture.offset.x = 0.24;
-  cardTexture.offset.y = 1; // Adjust Y position after flip
-  cardTexture.repeat.y = -1; // Flip upside down
-  cardTexture.needsUpdate = true;
+  const { nodes, materials } = useGLTF(cardGLB) as any;
+  const texture = useTexture(lanyard);
   const [curve] = useState(
     () =>
       new THREE.CatmullRomCurve3([new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()])
@@ -171,8 +170,7 @@ function Band({ maxSpeed = 50, minSpeed = 0, isMobile = false, isTablet = false 
       curve.points[1].copy(j2.current.lerped);
       curve.points[2].copy(j1.current.lerped);
       curve.points[3].copy(fixed.current.translation());
-      // Increase curve points for smoother rendering on mobile
-      band.current.geometry.setPoints(curve.getPoints(isMobile ? 24 : isTablet ? 28 : 32));
+      band.current.geometry.setPoints(curve.getPoints(isMobile ? 16 : 32));
       ang.copy(card.current.angvel());
       rot.copy(card.current.rotation());
       card.current.setAngvel({ x: ang.x, y: ang.y - rot.y * 0.25, z: ang.z });
@@ -180,7 +178,7 @@ function Band({ maxSpeed = 50, minSpeed = 0, isMobile = false, isTablet = false 
   });
 
   curve.curveType = 'chordal';
-  lanyardTexture.wrapS = lanyardTexture.wrapT = THREE.RepeatWrapping;
+  texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
 
   return (
     <>
@@ -218,31 +216,57 @@ function Band({ maxSpeed = 50, minSpeed = 0, isMobile = false, isTablet = false 
           >
             <mesh geometry={nodes.card.geometry}>
               <meshPhysicalMaterial
-                map={cardTexture}
+                map={materials.base.map}
                 map-anisotropy={16}
                 clearcoat={isMobile ? 0 : 1}
                 clearcoatRoughness={0.15}
-                roughness={0.3}
-                metalness={0.5}
+                roughness={0.9}
+                metalness={0.8}
               />
             </mesh>
             <mesh geometry={nodes.clip.geometry} material={materials.metal} material-roughness={0.3} />
             <mesh geometry={nodes.clamp.geometry} material={materials.metal} />
+
+            {/* Dynamic Content Overlay - Positioned relative to the card group */}
+            <Html
+              transform
+              wrapperClass="html-screen-content"
+              distanceFactor={1.2}
+              position={[0, 0.85, 0.05]}
+              rotation={[0, 0, 0]}
+            >
+              <div className="w-[175px] h-[290px] bg-black p-4 flex flex-col items-center justify-center text-center select-none pointer-events-none rounded-[30px]">
+                <div className="mb-4">
+                  <img src={vajraLogo} alt="Vajra" className="w-16 h-16 object-contain" />
+                </div>
+                <div className="text-white font-bold text-xl tracking-widest mb-1">
+                  VAJRA
+                </div>
+                <div className="w-full h-[1px] bg-red-500 mb-2"></div>
+                <div className="text-red-500 font-mono text-[10px] font-bold tracking-widest uppercase">
+                  Your Personnel CISO
+                </div>
+                <div className="mt-8 opacity-50">
+                  <div className="w-12 h-12 border-2 border-white rounded-md flex items-center justify-center">
+                    <div className="w-8 h-8 bg-white/20 rounded-full"></div>
+                  </div>
+                </div>
+              </div>
+            </Html>
+
           </group>
         </RigidBody>
       </group>
       <mesh ref={band}>
         <meshLineGeometry />
         <meshLineMaterial
-          color="#ffdddd"
-          emissive="#ff4444"
-          emissiveIntensity={0.15}
+          color="white"
           depthTest={false}
-          resolution={isMobile ? [window.innerWidth * 2, window.innerHeight * 2] : isTablet ? [1536, 2048] : [1920, 1080]}
+          resolution={isMobile ? [1000, 2000] : [1000, 1000]}
           useMap
-          map={lanyardTexture}
+          map={texture}
           repeat={[-4, 1]}
-          lineWidth={isMobile ? 3 : isTablet ? 2 : 1.5}
+          lineWidth={1}
         />
       </mesh>
     </>
